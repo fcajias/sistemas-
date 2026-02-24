@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SICP | Portal Rápido</title>
+    <!-- Tailwind CSS para el diseño -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Iconos de Lucide -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
+    </style>
+</head>
+<body class="bg-slate-50 font-sans text-slate-800 pb-24">
+    <!-- HEADER -->
+    <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <i data-lucide="monitor" class="text-indigo-400"></i>
+                <h1 class="font-bold text-xl tracking-tight">SICP <span class="text-indigo-400 font-normal">| Portal Rápido</span></h1>
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" id="app-container">
+        <!-- El contenido se inyecta aquí con Javascript -->
+    </main>
+
+    <!-- FLOATING CART BUTTON -->
+    <div id="floating-cart" class="fixed bottom-6 left-0 right-0 flex justify-center z-50 hidden">
+        <button onclick="goToCheckout()" class="bg-indigo-600 text-white hover:bg-indigo-700 shadow-2xl rounded-full px-8 py-4 text-lg font-medium flex items-center transition-all transform hover:scale-105">
+            <i data-lucide="shopping-cart" class="mr-3"></i>
+            Revisar Pedido (<span id="cart-count">0</span> items)
+        </button>
+    </div>
+
+    <script>
+        // --- CONFIGURACIÓN DE WHATSAPP ---
+        // Pon tu número aquí (Con código de país, sin el símbolo +)
+        const ADMIN_WHATSAPP_NUMBER = "593999999999"; 
+
+        const INVENTORY = [
+            { id: '1', name: 'Mouse', category: 'Periféricos', icon: 'mouse', color: 'text-blue-500', bg: 'bg-blue-100' },
+            { id: '2', name: 'Teclado', category: 'Periféricos', icon: 'keyboard', color: 'text-indigo-500', bg: 'bg-indigo-100' },
+            { id: '3', name: 'Audífonos simples', category: 'Audio', icon: 'headphones', color: 'text-emerald-500', bg: 'bg-emerald-100' },
+            { id: '4', name: 'Audífonos dobles', category: 'Audio', icon: 'headset', color: 'text-teal-500', bg: 'bg-teal-100' },
+            { id: '5', name: 'Cable de Red', category: 'Conectividad', icon: 'network', color: 'text-orange-500', bg: 'bg-orange-100' },
+            { id: '6', name: 'Cable de Poder', category: 'Energía', icon: 'plug', color: 'text-red-500', bg: 'bg-red-100' },
+            { id: '7', name: 'Cámara', category: 'Video', icon: 'camera', color: 'text-purple-500', bg: 'bg-purple-100' },
+            { id: '8', name: 'Cable VGA', category: 'Video', icon: 'cable', color: 'text-cyan-500', bg: 'bg-cyan-100' },
+            { id: '9', name: 'Cargador de laptop', category: 'Energía', icon: 'battery-charging', color: 'text-yellow-500', bg: 'bg-yellow-100' },
+        ];
+
+        let cart = {};
+        let currentView = 'catalog'; 
+
+        const container = document.getElementById('app-container');
+        const floatingCart = document.getElementById('floating-cart');
+        const cartCountEl = document.getElementById('cart-count');
+
+        function updateCart(id, change) {
+            cart[id] = (cart[id] || 0) + change;
+            if (cart[id] <= 0) delete cart[id];
+            render();
+        }
+
+        function getTotalItems() {
+            return Object.values(cart).reduce((a, b) => a + b, 0);
+        }
+
+        function goToCheckout() {
+            currentView = 'checkout';
+            render();
+        }
+
+        function goToCatalog() {
+            currentView = 'catalog';
+            render();
+        }
+
+        function sendToWhatsApp(event) {
+            event.preventDefault();
+            const name = document.getElementById('leaderName').value;
+            if (!name.trim()) {
+                alert('Por favor ingresa tu nombre');
+                return;
+            }
+
+            let message = `Hola Sistemas, soy *${name.trim()}*.%0A%0ASolicito los siguientes equipos para mi área:%0A%0A`;
+            for (const [id, qty] of Object.entries(cart)) {
+                const item = INVENTORY.find(i => i.id === id);
+                message += `▪️ ${qty}x ${item.name}%0A`;
+            }
+            message += `%0A_Enviado desde el Portal de Solicitudes SICP_`;
+
+            window.open(`https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${message}`, '_blank');
+            
+            cart = {};
+            currentView = 'success';
+            render();
+        }
+
+        function render() {
+            let html = '';
+            
+            if (currentView === 'catalog') {
+                floatingCart.style.display = getTotalItems() > 0 ? 'flex' : 'none';
+                cartCountEl.innerText = getTotalItems();
+
+                html += '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">';
+                
+                INVENTORY.forEach(item => {
+                    const qty = cart[item.id] || 0;
+                    html += `
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
+                        <div class="h-32 flex items-center justify-center ${item.bg}">
+                            <i data-lucide="${item.icon}" class="${item.color}" style="width: 48px; height: 48px;"></i>
+                        </div>
+                        <div class="p-5 flex flex-col flex-grow">
+                            <div class="mb-4 flex-grow text-center">
+                                <p class="text-xs text-slate-500 font-semibold mb-1 uppercase tracking-wider">${item.category}</p>
+                                <h3 class="text-lg font-bold text-slate-800 leading-tight">${item.name}</h3>
+                            </div>
+                            <div class="mt-auto pt-4 border-t border-slate-100">
+                                <div class="flex items-center bg-slate-50 rounded-lg p-1 w-full justify-between border border-slate-200">
+                                    <button onclick="updateCart('${item.id}', -1)" ${qty === 0 ? 'disabled' : ''} class="p-2 rounded-md hover:bg-white text-slate-600 disabled:opacity-30 transition-all shadow-sm">
+                                        <i data-lucide="minus" class="w-4 h-4"></i>
+                                    </button>
+                                    <span class="font-bold text-slate-800 w-8 text-center text-lg">${qty}</span>
+                                    <button onclick="updateCart('${item.id}', 1)" class="p-2 rounded-md bg-white text-indigo-600 shadow-sm hover:text-indigo-800 transition-all border border-slate-100">
+                                        <i data-lucide="plus" class="w-4 h-4"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+                });
+                html += '</div>';
+            } 
+            else if (currentView === 'checkout') {
+                floatingCart.style.display = 'none';
+                html += `
+                <div class="max-w-2xl mx-auto space-y-6 animate-fade-in-up pb-10">
+                    <button onclick="goToCatalog()" class="flex items-center text-indigo-600 hover:text-indigo-800 font-medium mb-4">
+                        <i data-lucide="arrow-left" class="w-5 h-5 mr-1"></i> Seguir agregando equipos
+                    </button>
+                    <h2 class="text-3xl font-bold text-slate-800">Completa tu Solicitud</h2>
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+                        <form onsubmit="sendToWhatsApp(event)">
+                            <div class="mb-8">
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Tu Nombre / Área</label>
+                                <input id="leaderName" required autofocus type="text" class="w-full border-2 border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-lg transition-all" placeholder="Ej. Juan Pérez - Recepción">
+                                <p class="text-sm text-slate-500 mt-2">Este nombre aparecerá en el mensaje de Sistemas.</p>
+                            </div>
+                            <h3 class="font-bold text-slate-700 mb-4 border-b-2 border-slate-100 pb-2">Equipos Seleccionados</h3>
+                            <ul class="divide-y divide-slate-100 mb-8">
+                `;
+                
+                for (const [id, qty] of Object.entries(cart)) {
+                    const item = INVENTORY.find(i => i.id === id);
+                    html += `
+                        <li class="py-4 flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-12 h-12 rounded-lg flex items-center justify-center ${item.bg}">
+                                    <i data-lucide="${item.icon}" class="${item.color}"></i>
+                                </div>
+                                <p class="font-bold text-slate-800 text-lg">${item.name}</p>
+                            </div>
+                            <span class="font-bold text-indigo-700 bg-indigo-50 px-4 py-2 rounded-lg text-lg border border-indigo-100">x${qty}</span>
+                        </li>
+                    `;
+                }
+
+                html += `
+                            </ul>
+                            <button type="submit" class="w-full py-4 text-lg rounded-xl bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 shadow-md flex items-center justify-center font-medium transition-all">
+                                <i data-lucide="send" class="w-6 h-6 mr-2"></i> Enviar Pedido por WhatsApp
+                            </button>
+                            <p class="text-center text-xs text-slate-400 mt-4">Se abrirá tu WhatsApp para enviar el mensaje directamente.</p>
+                        </form>
+                    </div>
+                </div>`;
+            }
+            else if (currentView === 'success') {
+                floatingCart.style.display = 'none';
+                html += `
+                <div class="max-w-md mx-auto mt-20 text-center animate-fade-in-up bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex justify-center mb-6">
+                        <div class="bg-emerald-100 p-6 rounded-full text-emerald-600">
+                            <i data-lucide="check-circle" style="width: 64px; height: 64px;"></i>
+                        </div>
+                    </div>
+                    <h2 class="text-3xl font-bold text-slate-800 mb-4">¡Listo!</h2>
+                    <p class="text-slate-600 mb-8 text-lg">
+                        El mensaje se ha preparado en tu WhatsApp. Asegúrate de presionar <b>"Enviar"</b> en el chat.
+                    </p>
+                    <button onclick="goToCatalog()" class="w-full py-3 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium transition-all">
+                        Volver al inicio
+                    </button>
+                </div>`;
+            }
+
+            container.innerHTML = html;
+            lucide.createIcons(); 
+        }
+
+        render();
+    </script>
+</body>
+</html>
