@@ -42,8 +42,8 @@
 
     <script>
         // --- CONFIGURACIÓN DE WHATSAPP ---
-        // Pon tu número aquí (Con código de país, sin el símbolo +)
-        const ADMIN_WHATSAPP_NUMBER = "593999999999"; 
+        // Para enviar a un grupo, la API de WhatsApp no usa un número fijo,
+        // sino que abre la app para que el usuario seleccione el grupo destino.
 
         const INVENTORY = [
             { id: '1', name: 'Mouse', category: 'Periféricos', icon: 'mouse', color: 'text-blue-500', bg: 'bg-blue-100' },
@@ -99,7 +99,8 @@
             }
             message += `%0A_Enviado desde el Portal de Solicitudes SICP_`;
 
-            window.open(`https://wa.me/${ADMIN_WHATSAPP_NUMBER}?text=${message}`, '_blank');
+            // Abre WhatsApp de forma general para que el usuario elija el grupo
+            window.open(`https://api.whatsapp.com/send?text=${message}`, '_blank');
             
             cart = {};
             currentView = 'success';
@@ -182,7 +183,7 @@
                             <button type="submit" class="w-full py-4 text-lg rounded-xl bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 shadow-md flex items-center justify-center font-medium transition-all">
                                 <i data-lucide="send" class="w-6 h-6 mr-2"></i> Enviar Pedido por WhatsApp
                             </button>
-                            <p class="text-center text-xs text-slate-400 mt-4">Se abrirá tu WhatsApp para enviar el mensaje directamente.</p>
+                            <p class="text-center text-xs text-slate-400 mt-4">Se abrirá tu WhatsApp. Deberás seleccionar el <b>grupo de Sistemas</b> para enviar el mensaje.</p>
                         </form>
                     </div>
                 </div>`;
@@ -198,7 +199,7 @@
                     </div>
                     <h2 class="text-3xl font-bold text-slate-800 mb-4">¡Listo!</h2>
                     <p class="text-slate-600 mb-8 text-lg">
-                        El mensaje se ha preparado en tu WhatsApp. Asegúrate de presionar <b>"Enviar"</b> en el chat.
+                        El mensaje se ha preparado. Si aún no lo has hecho, asegúrate de seleccionar el <b>grupo de Sistemas</b> en WhatsApp y darle a enviar.
                     </p>
                     <button onclick="goToCatalog()" class="w-full py-3 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium transition-all">
                         Volver al inicio
