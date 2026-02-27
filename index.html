@@ -14,16 +14,31 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
+        
+        /* Estilos para quitar flechas a los inputs numéricos */
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 pb-24 flex flex-col min-h-screen">
     <!-- HEADER -->
     <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="goToCatalog()">
                 <i data-lucide="monitor" class="text-indigo-400"></i>
                 <h1 class="font-bold text-xl tracking-tight">SICP <span class="text-indigo-400 font-normal">| Solicitudes de Sistemas-Fydi</span></h1>
             </div>
+            <!-- Nuevo botón para entrar al panel de inventario -->
+            <button onclick="goToAdmin()" class="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors border border-slate-700">
+                <i data-lucide="settings" class="w-4 h-4"></i>
+                <span class="hidden sm:inline">Admin</span>
+            </button>
         </div>
     </header>
 
@@ -54,7 +69,7 @@
         const ENTRY_ITEMS = "entry.747711175"; // ID de la pregunta "Equipos Solicitados"
 
         // ==========================================
-        // LISTA DE LÍDERES (Edita estos nombres según tu equipo)
+        // LISTA DE LÍDERES
         // ==========================================
         const LIDERES = [
             "Anderson Guzman - Líder",
@@ -65,7 +80,7 @@
             "Carolina Sangucho - Líder",
             "Cinthya Pavon - Líder",
             "Cristian Chiliguano - Líder",
-            "David - DevOps",
+            "David Cajias - DevOps",
             "Eddy Minga - Líder",
             "Edgar Jumbo - Líder",
             "Edinxon Mendoza - Líder",
@@ -94,19 +109,36 @@
         ];
 
         // ==========================================
-        // INVENTARIO
+        // INVENTARIO BASE (Agregado el campo 'stock')
         // ==========================================
-        const INVENTORY = [
-            { id: '1', name: 'Mouse', category: 'Periféricos', icon: 'mouse', color: 'text-blue-500', bg: 'bg-blue-100' },
-            { id: '2', name: 'Teclado', category: 'Periféricos', icon: 'keyboard', color: 'text-indigo-500', bg: 'bg-indigo-100' },
-            { id: '3', name: 'Audífonos simples', category: 'Audio', icon: 'headphones', color: 'text-emerald-500', bg: 'bg-emerald-100' },
-            { id: '4', name: 'Audífonos dobles', category: 'Audio', icon: 'headset', color: 'text-teal-500', bg: 'bg-teal-100' },
-            { id: '5', name: 'Cable de Red', category: 'Conectividad', icon: 'network', color: 'text-orange-500', bg: 'bg-orange-100' },
-            { id: '6', name: 'Cable de Poder', category: 'Energía', icon: 'plug', color: 'text-red-500', bg: 'bg-red-100' },
-            { id: '7', name: 'Cámara', category: 'Video', icon: 'camera', color: 'text-purple-500', bg: 'bg-purple-100' },
-            { id: '8', name: 'Cable VGA', category: 'Video', icon: 'cable', color: 'text-cyan-500', bg: 'bg-cyan-100' },
-            { id: '9', name: 'Cargador de laptop', category: 'Energía', icon: 'battery-charging', color: 'text-yellow-500', bg: 'bg-yellow-100' },
+        const DEFAULT_INVENTORY = [
+            { id: '1', stock: 10, name: 'Mouse', category: 'Periféricos', icon: 'mouse', color: 'text-blue-500', bg: 'bg-blue-100' },
+            { id: '2', stock: 5, name: 'Teclado', category: 'Periféricos', icon: 'keyboard', color: 'text-indigo-500', bg: 'bg-indigo-100' },
+            { id: '3', stock: 0, name: 'Audífonos simples', category: 'Audio', icon: 'headphones', color: 'text-emerald-500', bg: 'bg-emerald-100' }, // <- Puesto en 0 para probar el bloqueo
+            { id: '4', stock: 15, name: 'Audífonos dobles', category: 'Audio', icon: 'headset', color: 'text-teal-500', bg: 'bg-teal-100' },
+            { id: '5', stock: 50, name: 'Cable de Red', category: 'Conectividad', icon: 'network', color: 'text-orange-500', bg: 'bg-orange-100' },
+            { id: '6', stock: 20, name: 'Cable de Poder', category: 'Energía', icon: 'plug', color: 'text-red-500', bg: 'bg-red-100' },
+            { id: '7', stock: 3, name: 'Cámara', category: 'Video', icon: 'camera', color: 'text-purple-500', bg: 'bg-purple-100' },
+            { id: '8', stock: 25, name: 'Cable VGA', category: 'Video', icon: 'cable', color: 'text-cyan-500', bg: 'bg-cyan-100' },
+            { id: '9', stock: 12, name: 'Cargador de laptop', category: 'Energía', icon: 'battery-charging', color: 'text-yellow-500', bg: 'bg-yellow-100' },
         ];
+
+        // Memoria local del inventario
+        let INVENTORY = [];
+
+        function loadInventory() {
+            const saved = localStorage.getItem('sicp_local_stock');
+            if (saved) {
+                INVENTORY = JSON.parse(saved);
+            } else {
+                INVENTORY = [...DEFAULT_INVENTORY];
+                saveInventory();
+            }
+        }
+
+        function saveInventory() {
+            localStorage.setItem('sicp_local_stock', JSON.stringify(INVENTORY));
+        }
 
         let cart = {};
         let currentView = 'catalog'; 
@@ -115,8 +147,26 @@
         const floatingCart = document.getElementById('floating-cart');
         const cartCountEl = document.getElementById('cart-count');
 
+        // Función para actualizar stock desde el panel Admin
+        function adminUpdateStock(id, newStock) {
+            const item = INVENTORY.find(i => i.id === id);
+            item.stock = parseInt(newStock) || 0;
+            saveInventory();
+            render(); // Refrescar vista
+        }
+
         function updateCart(id, change) {
-            cart[id] = (cart[id] || 0) + change;
+            const item = INVENTORY.find(i => i.id === id);
+            const currentQty = cart[id] || 0;
+            const newQty = currentQty + change;
+
+            // Validación: No dejar pedir más de lo que hay en stock
+            if (newQty > item.stock) {
+                alert(`¡Lo sentimos! Solo hay ${item.stock} unidades de ${item.name} disponibles.`);
+                return;
+            }
+
+            cart[id] = newQty;
             if (cart[id] <= 0) delete cart[id];
             render();
         }
@@ -133,6 +183,12 @@
 
         function goToCatalog() {
             currentView = 'catalog';
+            render();
+            window.scrollTo(0, 0);
+        }
+
+        function goToAdmin() {
+            currentView = 'admin';
             render();
             window.scrollTo(0, 0);
         }
@@ -187,11 +243,16 @@
             let messageWA = `Hola Sistemas, soy *${name.trim()}*.%0A%0ASolicito los siguientes equipos para mi área:%0A%0A`;
             let itemsForExcel = "";
 
+            // Descontar el stock de la memoria al hacer el pedido
             for (const [id, qty] of Object.entries(cart)) {
                 const item = INVENTORY.find(i => i.id === id);
+                item.stock -= qty; // <-- Descuento de stock
+                
                 messageWA += `▪️ ${qty}x ${item.name}%0A`;
                 itemsForExcel += `${qty}x ${item.name}, `; 
             }
+            saveInventory(); // Guardamos los nuevos valores
+
             messageWA += `%0A_Enviado desde el Portal de Solicitudes SISTEMAS_FYDI_`;
 
             submitToGoogleForms(name.trim(), itemsForExcel);
@@ -215,23 +276,43 @@
                 
                 INVENTORY.forEach(item => {
                     const qty = cart[item.id] || 0;
+                    const isOutOfStock = item.stock <= 0; // Verificar si no hay stock
+                    
+                    // Si no hay stock, le bajamos la opacidad y lo ponemos gris
+                    const cardStyle = isOutOfStock ? 'opacity-60 grayscale-[50%]' : 'hover:shadow-md transition-shadow';
+                    
                     html += `
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
+                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full relative ${cardStyle}">
+                        
+                        <!-- Etiqueta de Agotado -->
+                        ${isOutOfStock ? `
+                        <div class="absolute inset-0 bg-white/40 z-10 flex items-center justify-center backdrop-blur-[1px]">
+                            <div class="bg-red-500 text-white px-4 py-1.5 rounded-lg font-black tracking-widest text-sm shadow-lg border border-white transform -rotate-12">
+                                AGOTADO
+                            </div>
+                        </div>
+                        ` : `
+                        <div class="absolute top-2 right-2 z-10 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">
+                            Disp: ${item.stock}
+                        </div>
+                        `}
+
                         <div class="h-32 flex items-center justify-center ${item.bg}">
                             <i data-lucide="${item.icon}" class="${item.color}" style="width: 48px; height: 48px;"></i>
                         </div>
-                        <div class="p-5 flex flex-col flex-grow">
+                        <div class="p-5 flex flex-col flex-grow relative bg-white">
                             <div class="mb-4 flex-grow text-center">
                                 <p class="text-xs text-slate-500 font-semibold mb-1 uppercase tracking-wider">${item.category}</p>
                                 <h3 class="text-lg font-bold text-slate-800 leading-tight">${item.name}</h3>
                             </div>
                             <div class="mt-auto pt-4 border-t border-slate-100">
                                 <div class="flex items-center bg-slate-50 rounded-lg p-1 w-full justify-between border border-slate-200">
-                                    <button onclick="updateCart('${item.id}', -1)" ${qty === 0 ? 'disabled' : ''} class="p-2 rounded-md hover:bg-white text-slate-600 disabled:opacity-30 transition-all shadow-sm">
+                                    <button onclick="updateCart('${item.id}', -1)" ${qty === 0 || isOutOfStock ? 'disabled' : ''} class="p-2 rounded-md hover:bg-white text-slate-600 disabled:opacity-30 transition-all shadow-sm">
                                         <i data-lucide="minus" class="w-4 h-4"></i>
                                     </button>
                                     <span class="font-bold text-slate-800 w-8 text-center text-lg">${qty}</span>
-                                    <button onclick="updateCart('${item.id}', 1)" class="p-2 rounded-md bg-white text-indigo-600 shadow-sm hover:text-indigo-800 transition-all border border-slate-100">
+                                    <!-- Deshabilitar botón + si ya no hay stock o alcanzó el máximo -->
+                                    <button onclick="updateCart('${item.id}', 1)" ${isOutOfStock || qty >= item.stock ? 'disabled' : ''} class="p-2 rounded-md bg-white text-indigo-600 shadow-sm hover:text-indigo-800 transition-all border border-slate-100 disabled:opacity-30 disabled:shadow-none">
                                         <i data-lucide="plus" class="w-4 h-4"></i>
                                     </button>
                                 </div>
@@ -241,10 +322,68 @@
                 });
                 html += '</div>';
             } 
+            else if (currentView === 'admin') {
+                // Nueva vista de Administrador
+                floatingCart.style.display = 'none';
+
+                html += `
+                <div class="max-w-3xl mx-auto space-y-6 animate-fade-in-up pb-10">
+                    <div class="flex justify-between items-center mb-6">
+                        <button onclick="goToCatalog()" class="flex items-center text-slate-500 hover:text-indigo-600 font-semibold bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm transition-colors">
+                            <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Volver al Catálogo
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-900 px-8 py-6 text-white">
+                            <h2 class="text-2xl font-bold flex items-center"><i data-lucide="package-search" class="mr-3 text-indigo-400"></i> Inventario Local (Simulador)</h2>
+                            <p class="text-slate-400 mt-1 text-sm">Cambia las cantidades aquí para probar cómo se agotan los productos. Se guarda en tu navegador.</p>
+                        </div>
+
+                        <div class="p-8">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="text-xs uppercase text-slate-400 border-b-2 border-slate-100">
+                                        <th class="pb-3 px-2">Producto</th>
+                                        <th class="pb-3 px-2 text-center">Unidades</th>
+                                        <th class="pb-3 px-2 text-right">Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                `;
+
+                INVENTORY.forEach(item => {
+                    const isZero = item.stock <= 0;
+                    html += `
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="py-4 px-2 flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded flex items-center justify-center ${item.bg}"><i data-lucide="${item.icon}" class="w-4 h-4 ${item.color}"></i></div>
+                                            <span class="font-bold text-slate-800">${item.name}</span>
+                                        </td>
+                                        <td class="py-4 px-2 text-center">
+                                            <!-- Input para modificar el stock -->
+                                            <input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', this.value)" class="w-20 text-center text-lg font-bold border border-slate-300 rounded-lg py-1 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all ${isZero ? 'text-red-600 bg-red-50' : 'text-slate-700'}">
+                                        </td>
+                                        <td class="py-4 px-2 text-right">
+                                            ${isZero ? '<span class="bg-red-100 text-red-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide">Agotado</span>' : '<span class="bg-emerald-100 text-emerald-700 text-[10px] font-bold px-2 py-1 rounded uppercase tracking-wide">Stock OK</span>'}
+                                        </td>
+                                    </tr>
+                    `;
+                });
+
+                html += `
+                                </tbody>
+                            </table>
+                            <div class="mt-8 text-center text-sm text-slate-500 font-medium bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <i data-lucide="info" class="inline w-4 h-4 mr-1 text-indigo-500"></i> Simplemente escribe el número y da clic fuera de la caja para guardar automáticamente.
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
             else if (currentView === 'checkout') {
                 floatingCart.style.display = 'none';
                 
-                // Generar opciones del select basadas en el array LIDERES
                 let opcionesLideres = LIDERES.map(lider => `<option value="${lider}">${lider}</option>`).join('');
 
                 html += `
@@ -315,6 +454,8 @@
             lucide.createIcons(); 
         }
 
+        // Inicializar la página cargando el inventario guardado
+        loadInventory();
         render();
     </script>
 </body>
