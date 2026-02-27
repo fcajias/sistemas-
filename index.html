@@ -48,13 +48,54 @@
     <script>
         // ==========================================
         // CONFIGURACIÓN DE GOOGLE FORMS (BASE DE DATOS)
-        // Reemplaza estos valores con los de tu formulario
         // ==========================================
         const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfFxX65M8NgVPHB09LqC-mIRFi5_owL5G73EszBKKQNZlVVrQ/formResponse";
         const ENTRY_NAME = "entry.519287369"; // ID de la pregunta "Nombre/Área"
         const ENTRY_ITEMS = "entry.747711175"; // ID de la pregunta "Equipos Solicitados"
 
+        // ==========================================
+        // LISTA DE LÍDERES (Edita estos nombres según tu equipo)
+        // ==========================================
+        const LIDERES = [
+            "Anderson Guzman - Líder",
+            "Asdrubal - Líder",
+            "Brandon Castillo - Líder",
+            "Brandon Jacome - Líder",
+            "Bryan Briones - G.C.",
+            "Carolina Sangucho - Líder",
+            "Cinthya Pavon - Líder",
+            "Cristian Chiliguano - Líder",
+            "David Cajias - DevOps",
+            "Eddy Minga - Líder",
+            "Edgar Jumbo - Líder",
+            "Edinxon Mendoza - Líder",
+            "Edumary Gabriela - Líder",
+            "Geoconda Galvez - Aud.",
+            "Gissela Saldana - Líder",
+            "Grace - Líder",
+            "Ivy Estupinan - Líder",
+            "Jeimmy Macias - Líder",
+            "Jonathan Ramirez - Líder",
+            "Jordan Trujillo - Líder",
+            "Joshep Casarez - Líder",
+            "Kyara - Líder",
+            "Luis Betancour - Aud.",
+            "Magaly - G.C.",
+            "Noenmi - Líder",
+            "Rafaela - G.C.",
+            "Rayza - Líder",
+            "Ricardo - Líder",
+            "Roberto Flores - Líder",
+            "Roger Garcia - Líder",
+            "Romel Chuchimbe - Líder",
+            "Sabrina - Líder",
+            "Samantha Fonseca - Líder",
+            "Stalin Cabascango - Líder"
+        ];
 
+        // ==========================================
+        // INVENTARIO
+        // ==========================================
         const INVENTORY = [
             { id: '1', name: 'Mouse', category: 'Periféricos', icon: 'mouse', color: 'text-blue-500', bg: 'bg-blue-100' },
             { id: '2', name: 'Teclado', category: 'Periféricos', icon: 'keyboard', color: 'text-indigo-500', bg: 'bg-indigo-100' },
@@ -96,14 +137,12 @@
             window.scrollTo(0, 0);
         }
 
-        // Función para enviar silenciosamente al Google Form
         function submitToGoogleForms(name, itemsText) {
             if(GOOGLE_FORM_URL.includes("TU_ID_DE_FORMULARIO_AQUI")) {
-                console.warn("Falta configurar Google Forms. No se guardará en Excel.");
+                console.warn("Falta configurar Google Forms.");
                 return;
             }
 
-            // Creamos un iframe oculto para no recargar la página
             let iframe = document.getElementById('hidden_iframe');
             if (!iframe) {
                 iframe = document.createElement('iframe');
@@ -113,20 +152,17 @@
                 document.body.appendChild(iframe);
             }
 
-            // Creamos un formulario virtual
             let form = document.createElement('form');
             form.action = GOOGLE_FORM_URL;
             form.method = 'POST';
             form.target = 'hidden_iframe';
 
-            // Campo Nombre
             let inputName = document.createElement('input');
             inputName.type = 'hidden';
             inputName.name = ENTRY_NAME;
             inputName.value = name;
             form.appendChild(inputName);
 
-            // Campo Equipos
             let inputItems = document.createElement('input');
             inputItems.type = 'hidden';
             inputItems.name = ENTRY_ITEMS;
@@ -139,9 +175,12 @@
 
         function processOrder(event) {
             event.preventDefault();
-            const name = document.getElementById('leaderName').value;
-            if (!name.trim()) {
-                alert('Por favor ingresa tu nombre');
+            const nameSelect = document.getElementById('leaderName');
+            const name = nameSelect.value;
+            
+            if (!name || name === "") {
+                alert('Por favor selecciona tu nombre de la lista');
+                nameSelect.focus();
                 return;
             }
 
@@ -151,14 +190,12 @@
             for (const [id, qty] of Object.entries(cart)) {
                 const item = INVENTORY.find(i => i.id === id);
                 messageWA += `▪️ ${qty}x ${item.name}%0A`;
-                itemsForExcel += `${qty}x ${item.name}, `; // Formato para el Excel
+                itemsForExcel += `${qty}x ${item.name}, `; 
             }
-            messageWA += `%0A_Enviado desde el Portal de Solicitudes SISTEMAS_FYDI`;
+            messageWA += `%0A_Enviado desde el Portal de Solicitudes SISTEMAS_FYDI_`;
 
-            // 1. Guardar en Excel (Google Forms) de fondo
             submitToGoogleForms(name.trim(), itemsForExcel);
 
-            // 2. Abrir WhatsApp para enviar mensaje al grupo
             window.open(`https://api.whatsapp.com/send?text=${messageWA}`, '_blank');
             
             cart = {};
@@ -206,6 +243,10 @@
             } 
             else if (currentView === 'checkout') {
                 floatingCart.style.display = 'none';
+                
+                // Generar opciones del select basadas en el array LIDERES
+                let opcionesLideres = LIDERES.map(lider => `<option value="${lider}">${lider}</option>`).join('');
+
                 html += `
                 <div class="max-w-2xl mx-auto space-y-6 animate-fade-in-up pb-10">
                     <button onclick="goToCatalog()" class="flex items-center text-indigo-600 hover:text-indigo-800 font-medium mb-4">
@@ -215,9 +256,12 @@
                     <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
                         <form onsubmit="processOrder(event)">
                             <div class="mb-8">
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Tu Nombre / Área</label>
-                                <input id="leaderName" required autofocus type="text" class="w-full border-2 border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-lg transition-all" placeholder="Ej. Juan Pérez - Recepción">
-                                <p class="text-sm text-slate-500 mt-2">Este nombre aparecerá en el mensaje de Sistemas.</p>
+                                <label class="block text-sm font-bold text-slate-700 mb-2">Líder Solicitante</label>
+                                <select id="leaderName" required autofocus class="w-full border-2 border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-lg transition-all bg-white cursor-pointer appearance-none">
+                                    <option value="" disabled selected>-- Selecciona tu nombre en la lista --</option>
+                                    ${opcionesLideres}
+                                </select>
+                                <p class="text-sm text-slate-500 mt-2">Este nombre aparecerá en los reportes de inventario mensual.</p>
                             </div>
                             <h3 class="font-bold text-slate-700 mb-4 border-b-2 border-slate-100 pb-2">Equipos Seleccionados</h3>
                             <ul class="divide-y divide-slate-100 mb-8">
