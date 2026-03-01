@@ -14,16 +14,38 @@
             to { opacity: 1; transform: translateY(0); }
         }
         .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
+        
+        /* Ocultar flechas en inputs numéricos del Admin */
+        input[type="number"]::-webkit-inner-spin-button, 
+        input[type="number"]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            appearance: none;
+            margin: 0; 
+        }
+        input[type="number"] { 
+            -moz-appearance: textfield; 
+            appearance: textfield;
+        }
     </style>
 </head>
 <body class="bg-slate-50 font-sans text-slate-800 pb-24 flex flex-col min-h-screen">
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast" class="fixed top-20 right-4 sm:right-8 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl transform transition-all duration-300 translate-x-[150%] z-50 flex items-center gap-3 font-medium border border-slate-700">
+        <div class="bg-indigo-500/20 p-1.5 rounded-full"><i data-lucide="info" class="text-indigo-400 w-5 h-5"></i></div>
+        <span id="toast-msg"></span>
+    </div>
+
     <!-- HEADER -->
     <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
-            <div class="flex items-center space-x-3">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="goToCatalog()">
                 <i data-lucide="monitor" class="text-indigo-400"></i>
                 <h1 class="font-bold text-xl tracking-tight">SICP <span class="text-indigo-400 font-normal">| Solicitudes de Sistemas-Fydi</span></h1>
             </div>
+            <!-- Botón de Administrador para controlar el stock -->
+            <button onclick="goToAdmin()" class="text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded flex items-center gap-2 transition-colors border border-slate-700">
+                <i data-lucide="settings" class="w-4 h-4"></i> Admin
+            </button>
         </div>
     </header>
 
@@ -47,6 +69,11 @@
 
     <script>
         // ==========================================
+        // 🔗 1. CONEXIÓN CON TU HOJA DE EXCEL (APPS SCRIPT)
+        // ==========================================
+        const EXCEL_API_URL = "https://script.google.com/macros/s/AKfycbzjC0NksRxtOZGQ54mz3LmcJzrggCwPxFFt8h4qU8OLQonfLSeUc9XCIi4pZL3gZmI7YA/exec"; 
+
+        // ==========================================
         // CONFIGURACIÓN DE GOOGLE FORMS (BASE DE DATOS)
         // ==========================================
         const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfFxX65M8NgVPHB09LqC-mIRFi5_owL5G73EszBKKQNZlVVrQ/formResponse";
@@ -54,70 +81,136 @@
         const ENTRY_ITEMS = "entry.747711175"; // ID de la pregunta "Equipos Solicitados"
 
         // ==========================================
-        // LISTA DE LÍDERES (Edita estos nombres según tu equipo)
+        // 🔒 SEGURIDAD DEL PANEL ADMIN
+        // ==========================================
+        const ADMIN_PIN = "2026"; // <-- ¡Este es tu PIN! Cámbialo por el que quieras.
+
+        // ==========================================
+        // LISTA DE LÍDERES
         // ==========================================
         const LIDERES = [
-            "Anderson Guzman - Líder",
-            "Asdrubal - Líder",
-            "Brandon Castillo - Líder",
-            "Brandon Jacome - Líder",
-            "Bryan Briones - G.C.",
-            "Carolina Sangucho - Líder",
-            "Cinthya Pavon - Líder",
-            "Cristian Chiliguano - Líder",
-            "David - DevOps",
-            "Eddy Minga - Líder",
-            "Edgar Jumbo - Líder",
-            "Edinxon Mendoza - Líder",
-            "Edumary Gabriela - Líder",
-            "Geoconda Galvez - Aud.",
-            "Gissela Saldana - Líder",
-            "Grace - Líder",
-            "Ivy Estupinan - Líder",
-            "Jeimmy Macias - Líder",
-            "Jonathan Ramirez - Líder",
-            "Jordan Trujillo - Líder",
-            "Joshep Casarez - Líder",
-            "Juan Lopez - Lider",
-            "Kyara - Líder",
-            "Luis Betancour - Aud.",
-            "Magaly - G.C.",
-            "Noenmi - Líder",
-            "Rafaela - G.C.",
-            "Rayza - Líder",
-            "Ricardo - Líder",
-            "Roberto Flores - Líder",
-            "Roger Garcia - Líder",
-            "Romel Chuchimbe - Líder",
-            "Sabrina - Líder",
-            "Samantha Fonseca - Líder",
-            "Stalin Cabascango - Líder"
+            "Anderson Guzman - Líder", "Asdrubal - Líder", "Brandon Castillo - Líder", "Brandon Jacome - Líder",
+            "Bryan Briones - G.C.", "Carolina Sangucho - Líder", "Cinthya Pavon - Líder", "Cristian Chiliguano - Líder",
+            "David Cajias - DevOps", "Eddy Minga - Líder", "Edgar Jumbo - Líder", "Edinxon Mendoza - Líder",
+            "Edumary Gabriela - Líder", "Geoconda Galvez - Aud.", "Gissela Saldana - Líder", "Grace - Líder",
+            "Ivy Estupinan - Líder", "Jeimmy Macias - Líder", "Jonathan Ramirez - Líder", "Jordan Trujillo - Líder",
+            "Joshep Casarez - Líder","Juan Lopez - Líder", "Kyara - Líder", "Luis Betancour - Aud.", "Magaly - G.C.", "Noenmi - Líder",
+            "Rafaela - G.C.", "Rayza - Líder", "Ricardo - Líder", "Roberto Flores - Líder", "Roger Garcia - Líder",
+            "Romel Chuchimbe - Líder", "Sabrina - Líder", "Samantha Fonseca - Líder", "Stalin Cabascango - Líder"
         ];
 
         // ==========================================
-        // INVENTARIO
+        // INVENTARIO BASE 
         // ==========================================
-        const INVENTORY = [
-            { id: '1', name: 'Mouse', category: 'Periféricos', icon: 'mouse', color: 'text-blue-500', bg: 'bg-blue-100' },
-            { id: '2', name: 'Teclado', category: 'Periféricos', icon: 'keyboard', color: 'text-indigo-500', bg: 'bg-indigo-100' },
-            { id: '3', name: 'Audífonos simples', category: 'Audio', icon: 'headphones', color: 'text-emerald-500', bg: 'bg-emerald-100' },
-            { id: '4', name: 'Audífonos dobles', category: 'Audio', icon: 'headset', color: 'text-teal-500', bg: 'bg-teal-100' },
-            { id: '5', name: 'Cable de Red', category: 'Conectividad', icon: 'network', color: 'text-orange-500', bg: 'bg-orange-100' },
-            { id: '6', name: 'Cable de Poder', category: 'Energía', icon: 'plug', color: 'text-red-500', bg: 'bg-red-100' },
-            { id: '7', name: 'Cámara', category: 'Video', icon: 'camera', color: 'text-purple-500', bg: 'bg-purple-100' },
-            { id: '8', name: 'Cable VGA', category: 'Video', icon: 'cable', color: 'text-cyan-500', bg: 'bg-cyan-100' },
-            { id: '9', name: 'Cargador de laptop', category: 'Energía', icon: 'battery-charging', color: 'text-yellow-500', bg: 'bg-yellow-100' },
+        const DEFAULT_INVENTORY = [
+            { id: '1', stock: 10, name: 'Mouse', category: 'Periféricos', icon: 'mouse', color: 'text-blue-500', bg: 'bg-blue-100' },
+            { id: '2', stock: 5, name: 'Teclado', category: 'Periféricos', icon: 'keyboard', color: 'text-indigo-500', bg: 'bg-indigo-100' },
+            { id: '3', stock: 0, name: 'Audífonos simples', category: 'Audio', icon: 'headphones', color: 'text-emerald-500', bg: 'bg-emerald-100' },
+            { id: '4', stock: 20, name: 'Audífonos dobles', category: 'Audio', icon: 'headset', color: 'text-teal-500', bg: 'bg-teal-100' },
+            { id: '5', stock: 50, name: 'Cable de Red', category: 'Conectividad', icon: 'network', color: 'text-orange-500', bg: 'bg-orange-100' },
+            { id: '6', stock: 15, name: 'Cable de Poder', category: 'Energía', icon: 'plug', color: 'text-red-500', bg: 'bg-red-100' },
+            { id: '7', stock: 3, name: 'Cámara', category: 'Video', icon: 'camera', color: 'text-purple-500', bg: 'bg-purple-100' },
+            { id: '8', stock: 30, name: 'Cable VGA', category: 'Video', icon: 'cable', color: 'text-cyan-500', bg: 'bg-cyan-100' },
+            { id: '9', stock: 10, name: 'Cargador de laptop', category: 'Energía', icon: 'battery-charging', color: 'text-yellow-500', bg: 'bg-yellow-100' },
         ];
 
+        let INVENTORY = [...DEFAULT_INVENTORY];
         let cart = {};
         let currentView = 'catalog'; 
+        let isSyncing = false;
 
         const container = document.getElementById('app-container');
         const floatingCart = document.getElementById('floating-cart');
         const cartCountEl = document.getElementById('cart-count');
 
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerHTML = msg;
+            toast.classList.remove('translate-x-[150%]');
+            setTimeout(() => toast.classList.add('translate-x-[150%]'), 3000);
+        }
+
+        // --- LÓGICA DE INVENTARIO EXCEL ---
+        async function loadInventory() {
+            if (!EXCEL_API_URL) return;
+
+            isSyncing = true;
+            render();
+            
+            try {
+                // Añadimos redirect: 'follow' y timestamp para evitar caché
+                const url = EXCEL_API_URL + "?action=read&t=" + new Date().getTime();
+                const res = await fetch(url, { redirect: 'follow' });
+                
+                if (!res.ok) throw new Error('Error en la respuesta del servidor');
+                const stockData = await res.json(); 
+                
+                let actualizoAlgo = false;
+                INVENTORY.forEach(item => {
+                    if (stockData[item.id] !== undefined) {
+                        item.stock = parseInt(stockData[item.id]);
+                        actualizoAlgo = true;
+                    }
+                });
+                
+                if(actualizoAlgo) {
+                    console.log("Inventario sincronizado con Excel");
+                    localStorage.setItem('sicp_stock_data', JSON.stringify(INVENTORY));
+                } else {
+                    console.warn("Excel respondió, pero no se encontraron IDs coincidentes.");
+                }
+
+            } catch(e) {
+                console.error("Error conectando a Excel:", e);
+                showToast("⚠️ Fallo al conectar con Excel. Usando datos locales.");
+                
+                // Recuperar la última copia local si falla el Excel
+                const saved = localStorage.getItem('sicp_stock_data');
+                if (saved) INVENTORY = JSON.parse(saved);
+            } finally {
+                isSyncing = false;
+                render();
+            }
+        }
+
+        // Función para actualizar stock obteniendo el nombre del producto automáticamente
+        async function adminUpdateStock(id, newStock) {
+            const item = INVENTORY.find(i => i.id === id);
+            item.stock = parseInt(newStock) || 0;
+            
+            // Guardar localmente siempre por si acaso
+            localStorage.setItem('sicp_stock_data', JSON.stringify(INVENTORY));
+            render(); // Refrescar UI inmediatamente
+
+            if (!EXCEL_API_URL) return;
+
+            showToast(`Sincronizando <b>${item.name}</b>... ⏳`);
+
+            try {
+                const url = `${EXCEL_API_URL}?action=update&id=${id}&stock=${item.stock}&t=${new Date().getTime()}`;
+                const res = await fetch(url, { redirect: 'follow' });
+                
+                if (!res.ok) throw new Error("Fallo en la respuesta");
+                
+                showToast(`✅ <b>${item.name}</b> guardado (${item.stock} uds.)`);
+            } catch(e) {
+                console.error("Error guardando en Excel:", e);
+                showToast(`❌ Error guardando ${item.name}. (Verifica permisos de Google)`);
+            }
+        }
+
         function updateCart(id, change) {
-            cart[id] = (cart[id] || 0) + change;
+            const item = INVENTORY.find(i => i.id === id);
+            const currentQty = cart[id] || 0;
+            const newQty = currentQty + change;
+
+            // Validación: No permite agregar más de lo que hay en stock
+            if (newQty > item.stock) {
+                alert(`¡Stock insuficiente! Solo quedan ${item.stock} unidades de ${item.name}.`);
+                return;
+            }
+
+            cart[id] = newQty;
             if (cart[id] <= 0) delete cart[id];
             render();
         }
@@ -126,23 +219,33 @@
             return Object.values(cart).reduce((a, b) => a + b, 0);
         }
 
-        function goToCheckout() {
-            currentView = 'checkout';
-            render();
-            window.scrollTo(0, 0);
+        function goToCheckout() { currentView = 'checkout'; render(); window.scrollTo(0, 0); }
+        function goToCatalog() { currentView = 'catalog'; loadInventory(); window.scrollTo(0, 0); }
+        
+        // Modificamos esta función para que envíe al login en vez de al admin directo
+        function goToAdmin() { 
+            currentView = 'login_admin'; 
+            render(); 
+            window.scrollTo(0, 0); 
         }
 
-        function goToCatalog() {
-            currentView = 'catalog';
-            render();
-            window.scrollTo(0, 0);
+        // Nueva función para verificar la contraseña
+        function verifyAdminPin(event) {
+            event.preventDefault();
+            const pin = document.getElementById('adminPinInput').value;
+            if (pin === ADMIN_PIN) {
+                currentView = 'admin';
+                render();
+                showToast("🔓 Acceso concedido", "success");
+            } else {
+                showToast("❌ PIN incorrecto", "error");
+                document.getElementById('adminPinInput').value = ''; // Limpiar la caja
+                document.getElementById('adminPinInput').focus();    // Volver a poner el cursor
+            }
         }
 
         function submitToGoogleForms(name, itemsText) {
-            if(GOOGLE_FORM_URL.includes("TU_ID_DE_FORMULARIO_AQUI")) {
-                console.warn("Falta configurar Google Forms.");
-                return;
-            }
+            if(GOOGLE_FORM_URL.includes("TU_ID_DE_FORMULARIO_AQUI")) return;
 
             let iframe = document.getElementById('hidden_iframe');
             if (!iframe) {
@@ -174,7 +277,7 @@
             form.submit();
         }
 
-        function processOrder(event) {
+        async function processOrder(event) {
             event.preventDefault();
             const nameSelect = document.getElementById('leaderName');
             const name = nameSelect.value;
@@ -190,13 +293,24 @@
 
             for (const [id, qty] of Object.entries(cart)) {
                 const item = INVENTORY.find(i => i.id === id);
+                item.stock -= qty; 
+                
                 messageWA += `▪️ ${qty}x ${item.name}%0A`;
                 itemsForExcel += `${qty}x ${item.name}, `; 
+                
+                // Descontar en Excel de fondo
+                if (EXCEL_API_URL) {
+                    const url = `${EXCEL_API_URL}?action=update&id=${id}&stock=${item.stock}&t=${new Date().getTime()}`;
+                    fetch(url, { redirect: 'follow' }).catch(e=>console.error(e));
+                }
             }
+            
+            // Guardar el estado local también
+            localStorage.setItem('sicp_stock_data', JSON.stringify(INVENTORY));
+
             messageWA += `%0A_Enviado desde el Portal de Solicitudes SISTEMAS_FYDI_`;
 
             submitToGoogleForms(name.trim(), itemsForExcel);
-
             window.open(`https://api.whatsapp.com/send?text=${messageWA}`, '_blank');
             
             cart = {};
@@ -212,40 +326,145 @@
                 floatingCart.style.display = getTotalItems() > 0 ? 'flex' : 'none';
                 cartCountEl.innerText = getTotalItems();
 
-                html += '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">';
-                
-                INVENTORY.forEach(item => {
-                    const qty = cart[item.id] || 0;
+                if (isSyncing) {
                     html += `
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full hover:shadow-md transition-shadow">
-                        <div class="h-32 flex items-center justify-center ${item.bg}">
-                            <i data-lucide="${item.icon}" class="${item.color}" style="width: 48px; height: 48px;"></i>
-                        </div>
-                        <div class="p-5 flex flex-col flex-grow">
-                            <div class="mb-4 flex-grow text-center">
-                                <p class="text-xs text-slate-500 font-semibold mb-1 uppercase tracking-wider">${item.category}</p>
-                                <h3 class="text-lg font-bold text-slate-800 leading-tight">${item.name}</h3>
-                            </div>
-                            <div class="mt-auto pt-4 border-t border-slate-100">
-                                <div class="flex items-center bg-slate-50 rounded-lg p-1 w-full justify-between border border-slate-200">
-                                    <button onclick="updateCart('${item.id}', -1)" ${qty === 0 ? 'disabled' : ''} class="p-2 rounded-md hover:bg-white text-slate-600 disabled:opacity-30 transition-all shadow-sm">
-                                        <i data-lucide="minus" class="w-4 h-4"></i>
-                                    </button>
-                                    <span class="font-bold text-slate-800 w-8 text-center text-lg">${qty}</span>
-                                    <button onclick="updateCart('${item.id}', 1)" class="p-2 rounded-md bg-white text-indigo-600 shadow-sm hover:text-indigo-800 transition-all border border-slate-100">
-                                        <i data-lucide="plus" class="w-4 h-4"></i>
-                                    </button>
+                    <div class="text-center py-20 text-indigo-500">
+                        <i data-lucide="loader-2" class="w-12 h-12 animate-spin mx-auto mb-4"></i>
+                        <p class="font-bold text-lg mt-2">Conectando con bodega...</p>
+                    </div>`;
+                } else {
+                    html += '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">';
+                    
+                    INVENTORY.forEach(item => {
+                        const qty = cart[item.id] || 0;
+                        const isOutOfStock = item.stock <= 0; 
+                        
+                        html += `
+                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full relative ${isOutOfStock ? 'opacity-60 grayscale-[50%]' : 'hover:shadow-md transition-shadow'}">
+                            
+                            ${isOutOfStock ? `
+                            <div class="absolute inset-0 bg-white/40 z-10 flex items-center justify-center backdrop-blur-[1px]">
+                                <div class="bg-red-500 text-white px-4 py-1.5 rounded-lg font-black tracking-widest text-sm shadow-lg border border-white transform -rotate-12">
+                                    AGOTADO
                                 </div>
                             </div>
-                        </div>
-                    </div>`;
-                });
-                html += '</div>';
+                            ` : `
+                            <div class="absolute top-2 right-2 z-10 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">
+                                Disp: ${item.stock}
+                            </div>
+                            `}
+
+                            <div class="h-32 flex items-center justify-center ${item.bg}">
+                                <i data-lucide="${item.icon}" class="${item.color}" style="width: 48px; height: 48px;"></i>
+                            </div>
+                            <div class="p-5 flex flex-col flex-grow relative bg-white">
+                                <div class="mb-4 flex-grow text-center">
+                                    <p class="text-xs text-slate-500 font-semibold mb-1 uppercase tracking-wider">${item.category}</p>
+                                    <h3 class="text-lg font-bold text-slate-800 leading-tight">${item.name}</h3>
+                                </div>
+                                <div class="mt-auto pt-4 border-t border-slate-100">
+                                    <div class="flex items-center bg-slate-50 rounded-lg p-1 w-full justify-between border border-slate-200 relative z-20">
+                                        <button onclick="updateCart('${item.id}', -1)" ${qty === 0 || isOutOfStock ? 'disabled' : ''} class="p-2 rounded-md hover:bg-white text-slate-600 disabled:opacity-30 transition-all shadow-sm">
+                                            <i data-lucide="minus" class="w-4 h-4"></i>
+                                        </button>
+                                        <span class="font-bold text-slate-800 w-8 text-center text-lg">${qty}</span>
+                                        <button onclick="updateCart('${item.id}', 1)" ${isOutOfStock || qty >= item.stock ? 'disabled' : ''} class="p-2 rounded-md bg-white text-indigo-600 shadow-sm hover:text-indigo-800 transition-all border border-slate-100 disabled:opacity-30 disabled:shadow-none">
+                                            <i data-lucide="plus" class="w-4 h-4"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>`;
+                    });
+                    html += '</div>';
+                }
             } 
+            // NUEVA VISTA: PANTALLA DE LOGIN DEL ADMIN
+            else if (currentView === 'login_admin') {
+                floatingCart.style.display = 'none';
+                
+                html += `
+                <div class="max-w-md mx-auto mt-12 text-center animate-fade-in-up bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-200">
+                    <div class="flex justify-center mb-6">
+                        <div class="bg-slate-100 p-5 rounded-full text-slate-800 shadow-inner">
+                            <i data-lucide="lock" style="width: 48px; height: 48px;"></i>
+                        </div>
+                    </div>
+                    <h2 class="text-3xl font-black text-slate-800 mb-2">Acceso Restringido</h2>
+                    <p class="text-slate-500 mb-8 text-sm font-medium">Área exclusiva para el equipo de Sistemas.</p>
+                    <form onsubmit="verifyAdminPin(event)">
+                        <input type="password" id="adminPinInput" placeholder="****" class="w-full border-2 border-slate-200 rounded-2xl px-4 py-4 mb-6 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-center text-4xl tracking-[0.5em] font-black transition-all text-slate-800 shadow-sm" required autofocus>
+                        <button type="submit" class="w-full py-4 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 font-black transition-all shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.6)] flex items-center justify-center text-lg transform hover:-translate-y-1">
+                            <i data-lucide="key-round" class="w-6 h-6 mr-3"></i> Verificar PIN
+                        </button>
+                    </form>
+                    <button onclick="goToCatalog()" class="mt-8 text-sm text-slate-400 hover:text-slate-600 transition-colors font-bold">
+                        <i data-lucide="arrow-left" class="inline w-4 h-4 mr-1"></i> Volver al catálogo
+                    </button>
+                </div>`;
+            }
+            else if (currentView === 'admin') {
+                floatingCart.style.display = 'none';
+
+                html += `
+                <div class="max-w-3xl mx-auto space-y-6 animate-fade-in-up pb-10">
+                    <button onclick="goToCatalog()" class="flex items-center text-slate-500 hover:text-indigo-600 font-semibold mb-6 bg-white px-4 py-2 rounded-lg border border-slate-200 shadow-sm transition-colors">
+                        <i data-lucide="arrow-left" class="w-4 h-4 mr-2"></i> Volver al Catálogo
+                    </button>
+                    
+                    <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                        <div class="bg-slate-900 px-8 py-6 text-white flex justify-between items-center">
+                            <div>
+                                <h2 class="text-2xl font-bold flex items-center"><i data-lucide="package-search" class="mr-3 text-indigo-400"></i> Control de Stock en Vivo</h2>
+                                <p class="text-slate-400 mt-1 text-sm">Cambia las cantidades y se guardarán automáticamente en tu Excel.</p>
+                            </div>
+                            <div class="text-emerald-400 text-xs font-bold border border-emerald-400/30 bg-emerald-400/10 px-3 py-1 rounded-full flex items-center">
+                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span> En Línea
+                            </div>
+                        </div>
+
+                        <div class="p-8">
+                            <table class="w-full text-left">
+                                <thead>
+                                    <tr class="text-xs uppercase text-slate-400 border-b-2 border-slate-100">
+                                        <th class="pb-3 px-2">ID</th>
+                                        <th class="pb-3 px-2">Producto</th>
+                                        <th class="pb-3 px-2 text-center">Unidades Físicas</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100">
+                `;
+
+                INVENTORY.forEach(item => {
+                    const isZero = item.stock <= 0;
+                    html += `
+                                    <tr class="hover:bg-slate-50 transition-colors">
+                                        <td class="py-4 px-2 text-slate-400 font-mono text-sm">${item.id}</td>
+                                        <td class="py-4 px-2 flex items-center gap-3">
+                                            <div class="w-8 h-8 rounded flex items-center justify-center ${item.bg}"><i data-lucide="${item.icon}" class="w-4 h-4 ${item.color}"></i></div>
+                                            <span class="font-bold text-slate-800">${item.name}</span>
+                                        </td>
+                                        <td class="py-4 px-2 text-center">
+                                            <!-- Se manda el id y el valor nuevo. El nombre se detecta en la función -->
+                                            <input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', this.value)" class="w-20 text-center text-lg font-bold border border-slate-300 rounded-lg py-1 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-none transition-all ${isZero ? 'text-red-600 bg-red-50' : 'text-slate-700'}">
+                                        </td>
+                                    </tr>
+                    `;
+                });
+
+                html += `
+                                </tbody>
+                            </table>
+                            <div class="mt-8 text-center text-sm text-slate-500 font-medium bg-slate-50 p-4 rounded-xl border border-slate-200">
+                                <i data-lucide="info" class="inline w-4 h-4 mr-1 text-indigo-500"></i> Modifica un número, haz clic fuera del cuadro para guardar automáticamente.
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
             else if (currentView === 'checkout') {
                 floatingCart.style.display = 'none';
                 
-                // Generar opciones del select basadas en el array LIDERES
                 let opcionesLideres = LIDERES.map(lider => `<option value="${lider}">${lider}</option>`).join('');
 
                 html += `
@@ -262,7 +481,6 @@
                                     <option value="" disabled selected>-- Selecciona tu nombre en la lista --</option>
                                     ${opcionesLideres}
                                 </select>
-                                <p class="text-sm text-slate-500 mt-2">Este nombre aparecerá en los reportes de inventario mensual.</p>
                             </div>
                             <h3 class="font-bold text-slate-700 mb-4 border-b-2 border-slate-100 pb-2">Equipos Seleccionados</h3>
                             <ul class="divide-y divide-slate-100 mb-8">
@@ -288,7 +506,6 @@
                             <button type="submit" class="w-full py-4 text-lg rounded-xl bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 shadow-md flex items-center justify-center font-medium transition-all">
                                 <i data-lucide="send" class="w-6 h-6 mr-2"></i> Enviar Pedido (WhatsApp + Excel)
                             </button>
-                            <p class="text-center text-xs text-slate-400 mt-4">El pedido quedará registrado en nuestra base de datos y se abrirá WhatsApp para notificar al grupo.</p>
                         </form>
                     </div>
                 </div>`;
@@ -316,7 +533,8 @@
             lucide.createIcons(); 
         }
 
-        render();
+        // Cargar inventario al iniciar
+        loadInventory();
     </script>
 </body>
 </html>
