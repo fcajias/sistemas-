@@ -4,10 +4,26 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SICP | Solicitudes-Sistemas</title>
-    <!-- Tailwind CSS para el diseño -->
+    
+    <!-- Script Anti-Parpadeo para Modo Oscuro -->
+    <script>
+        if (localStorage.getItem('sicp_theme') === 'dark' || (!('sicp_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        }
+    </script>
+
+    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class', // Habilita el modo oscuro manual
+            theme: { extend: {} }
+        }
+    </script>
+    
     <!-- Iconos de Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
+    
     <style>
         @keyframes fadeInUp {
             from { opacity: 0; transform: translateY(20px); }
@@ -15,7 +31,7 @@
         }
         .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
         
-        /* Ocultar flechas en inputs numéricos del Admin */
+        /* Ocultar flechas en inputs numéricos */
         input[type="number"]::-webkit-inner-spin-button, 
         input[type="number"]::-webkit-outer-spin-button { 
             -webkit-appearance: none; 
@@ -28,71 +44,201 @@
         }
     </style>
 </head>
-<body class="bg-slate-50 font-sans text-slate-800 pb-24 flex flex-col min-h-screen">
+<body class="bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200 pb-24 flex flex-col min-h-screen transition-colors duration-300">
+    
     <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed top-20 right-4 sm:right-8 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-2xl transform transition-all duration-300 translate-x-[150%] z-50 flex items-center gap-3 font-medium border border-slate-700 z-[100]">
+    <div id="toast" class="fixed top-20 right-4 sm:right-8 bg-slate-900 dark:bg-slate-800 text-white px-5 py-3 rounded-2xl shadow-2xl transform transition-all duration-300 translate-x-[150%] z-50 flex items-center gap-3 font-medium border border-slate-700 dark:border-slate-600 z-[100]">
         <div id="toast-icon" class="bg-indigo-500/20 p-1.5 rounded-full"><i data-lucide="info" class="text-indigo-400 w-5 h-5"></i></div>
         <span id="toast-msg"></span>
     </div>
 
     <!-- HEADER -->
-    <header class="bg-slate-900 text-white sticky top-0 z-40 shadow-md">
+    <header class="bg-slate-900 dark:bg-slate-950 text-white sticky top-0 z-40 shadow-md transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3 cursor-pointer" onclick="goToCatalog()">
                 <i data-lucide="monitor" class="text-indigo-400"></i>
-                <h1 class="font-bold text-xl tracking-tight">SICP <span class="text-indigo-400 font-normal hidden sm:inline">| Solicitudes de Sistemas-Fydi</span></h1>
+                <h1 class="font-bold text-xl tracking-tight" id="header-title">SICP <span class="text-indigo-400 font-normal hidden sm:inline">| Solicitudes</span></h1>
             </div>
-            <!-- Botón de Administrador para controlar el stock -->
-            <button onclick="goToAdmin()" class="text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-300 px-3 py-1.5 rounded flex items-center gap-2 transition-colors border border-slate-700">
-                <i data-lucide="settings" class="w-4 h-4"></i> Admin
-            </button>
+            
+            <div class="flex items-center space-x-3">
+                <!-- Selector de Idioma -->
+                <select id="langSelector" onchange="changeLang(this.value)" class="bg-slate-800 dark:bg-slate-900 text-slate-300 text-xs sm:text-sm px-2 py-1.5 rounded border border-slate-700 dark:border-slate-800 outline-none focus:border-indigo-500 cursor-pointer transition-colors">
+                    <option value="es">🇪🇸 ES</option>
+                    <option value="en">🇺🇸 EN</option>
+                    <option value="zh">🇨🇳 ZH</option>
+                </select>
+
+                <!-- Botón de Tema (Oscuro/Claro) -->
+                <button onclick="toggleTheme()" class="text-slate-300 hover:text-white p-1.5 rounded-lg bg-slate-800 dark:bg-slate-900 border border-slate-700 dark:border-slate-800 transition-colors">
+                    <i data-lucide="moon" id="theme-icon" class="w-4 h-4"></i>
+                </button>
+
+                <!-- Botón de Administrador -->
+                <button onclick="goToAdmin()" class="text-xs font-bold bg-slate-800 dark:bg-slate-900 hover:bg-slate-700 dark:hover:bg-slate-800 text-slate-300 px-3 py-1.5 rounded flex items-center gap-2 transition-colors border border-slate-700 dark:border-slate-800">
+                    <i data-lucide="settings" class="w-4 h-4"></i> <span id="btn-admin-text">Admin</span>
+                </button>
+            </div>
         </div>
     </header>
 
     <!-- MAIN CONTENT -->
     <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full" id="app-container">
-        <!-- El contenido se inyecta aquí con Javascript -->
+        <!-- El contenido se inyecta aquí -->
     </main>
 
     <!-- FOOTER COPYRIGHT -->
-    <footer class="w-full text-center py-6 mt-auto text-sm text-slate-400">
-        &copy; 2026 David Cajias DevOps
+    <footer class="w-full text-center py-6 mt-auto text-sm text-slate-400 dark:text-slate-500">
+        &copy; 2026 David - DevOps
     </footer>
 
     <!-- FLOATING CART BUTTON -->
     <div id="floating-cart" class="fixed bottom-6 left-0 right-0 flex justify-center z-50 hidden">
-        <button onclick="goToCheckout()" class="bg-indigo-600 text-white hover:bg-indigo-700 shadow-2xl rounded-full px-8 py-4 text-lg font-medium flex items-center transition-all transform hover:scale-105">
+        <button onclick="goToCheckout()" class="bg-indigo-600 dark:bg-indigo-500 text-white shadow-xl rounded-full px-8 py-4 text-lg font-medium flex items-center transition-all transform hover:scale-105">
             <i data-lucide="shopping-cart" class="mr-3"></i>
-            Revisar Pedido (<span id="cart-count">0</span> items)
+            <span id="cart-btn-text">Revisar Pedido</span> &nbsp;(<span id="cart-count">0</span>)
         </button>
     </div>
 
     <script>
         // ==========================================
-        // 🔗 1. CONEXIÓN CON TU HOJA DE EXCEL (APPS SCRIPT)
+        // 🌍 SISTEMA DE MULTILENGUAJE (DICCIONARIO)
         // ==========================================
-        const EXCEL_API_URL = "https://script.google.com/macros/s/AKfycbz_h3px13ylzRHTLnS_-3VymsP71xeTKRS20pg_otpUHArax3mAiqnTImf2pmyO5Q7-hw/exec"; 
+        const i18n = {
+            es: {
+                headerTitle: "SICP | Solicitudes", admin: "Admin", cartBtn: "Revisar Pedido",
+                catTitle: "¿Qué necesita tu equipo?", catSub: "Selecciona los periféricos. El stock se actualiza en tiempo real.",
+                connecting: "Conectando con bodega...", outOfStock: "AGOTADO", disp: "Disp:",
+                checkoutTitle: "Finalizar Solicitud", leaderName: "Tu Nombre (Líder Solicitante)",
+                selectName: "-- Selecciona tu nombre en la lista --", yourOrder: "Tu Pedido", sendOrder: "Enviar Pedido",
+                checkoutNote: "Esto notificará a Sistemas. El stock no se descuenta hasta que recibas el equipo físicamente.",
+                successTitle: "¡Pedido Enviado!", successMsg1: "El equipo de Sistemas ha recibido tu solicitud y está pendiente de aprobación.",
+                successMsg2: "Recuerda presionar 'Enviar' en el chat de WhatsApp que se acaba de abrir.", backStart: "Volver al inicio",
+                loginTitle: "Ingresa tu PIN", loginSub: "El sistema registrará tus operaciones bajo tu nombre.",
+                verifyPin: "Validar Identidad", cancel: "Cancelar", backCatalog: "Volver al Catálogo",
+                logout: "Cerrar Sesión Segura", update: "Actualizar", pendingTitle: "Solicitudes Pendientes",
+                pendingSub: "Revisa y ajusta las cantidades. Al despachar, se anotará en el Excel.", noPending: "No hay pedidos pendientes.",
+                reqBy: "Solicitó", reject: "Rechazar", dispatch: "Despachar", stockTitle: "Ajuste Directo de Stock",
+                stockSubAdmin: "Usa esto solo para ingresar mercadería nueva a bodega.", stockSubRead: "Vista de solo lectura del inventario actual.",
+                readOnly: "Solo Lectura", product: "Producto", units: "Unidades",
+                saveHelp: "Modifica un número, haz clic fuera del cuadro para guardar automáticamente.", errorPin: "❌ PIN incorrecto",
+                welcome: "🔓 Bienvenido", sessionClosed: "Sesión cerrada",
+                whatsappMsg: "Hola Sistemas, soy *{name}*.\n\nSolicito los siguientes equipos para mi área:\n\n"
+            },
+            en: {
+                headerTitle: "SICP | IT Requests", admin: "Admin", cartBtn: "Review Order",
+                catTitle: "What does your team need?", catSub: "Select peripherals. Stock updates in real time.",
+                connecting: "Connecting to warehouse...", outOfStock: "OUT OF STOCK", disp: "Avail:",
+                checkoutTitle: "Finish Request", leaderName: "Your Name (Requesting Leader)",
+                selectName: "-- Select your name from the list --", yourOrder: "Your Order", sendOrder: "Send Order",
+                checkoutNote: "This will notify IT. Stock is not deducted until you physically receive the equipment.",
+                successTitle: "Order Sent!", successMsg1: "The IT team has received your request and is pending approval.",
+                successMsg2: "Remember to press 'Send' in the WhatsApp chat that just opened.", backStart: "Back to Home",
+                loginTitle: "Enter your PIN", loginSub: "The system will record your operations under your name.",
+                verifyPin: "Verify Identity", cancel: "Cancel", backCatalog: "Back to Catalog",
+                logout: "Secure Logout", update: "Refresh", pendingTitle: "Pending Requests",
+                pendingSub: "Review and adjust quantities. Upon dispatch, it will be logged in Excel.", noPending: "No pending orders.",
+                reqBy: "Requested", reject: "Reject", dispatch: "Dispatch", stockTitle: "Direct Stock Adjustment",
+                stockSubAdmin: "Use this only to enter new merchandise into the warehouse.", stockSubRead: "Read-only view of current inventory.",
+                readOnly: "Read Only", product: "Product", units: "Units",
+                saveHelp: "Modify a number, click outside the box to save automatically.", errorPin: "❌ Incorrect PIN",
+                welcome: "🔓 Welcome", sessionClosed: "Session closed",
+                whatsappMsg: "Hello IT, I am *{name}*.\n\nI request the following equipment for my area:\n\n"
+            },
+            zh: {
+                headerTitle: "SICP | IT 需求", admin: "管理", cartBtn: "审查订单",
+                catTitle: "您的团队需要什么？", catSub: "选择外设。库存实时更新。",
+                connecting: "正在连接仓库...", outOfStock: "缺货", disp: "可用:",
+                checkoutTitle: "完成申请", leaderName: "您的姓名 (主管)",
+                selectName: "-- 从列表中选择您的名字 --", yourOrder: "您的订单", sendOrder: "发送订单",
+                checkoutNote: "这将通知IT部门。在您实际收到设备之前，库存不会扣除。",
+                successTitle: "订单已发送！", successMsg1: "IT团队已收到您的请求，正在等待批准。",
+                successMsg2: "请记住在刚刚打开的WhatsApp聊天中按“发送”。", backStart: "返回首页",
+                loginTitle: "输入您的PIN码", loginSub: "系统将以您的名义记录您的操作。",
+                verifyPin: "验证身份", cancel: "取消", backCatalog: "返回目录",
+                logout: "安全退出", update: "刷新", pendingTitle: "待处理请求",
+                pendingSub: "审查并调整数量。发货后，将记录在Excel中。", noPending: "没有待处理的订单。",
+                reqBy: "要求", reject: "拒绝", dispatch: "发货", stockTitle: "直接库存调整",
+                stockSubAdmin: "仅使用此功能将新商品录入仓库。", stockSubRead: "当前库存的只读视图。",
+                readOnly: "只读", product: "产品", units: "单位",
+                saveHelp: "修改数字，在框外单击以自动保存。", errorPin: "❌ PIN码错误",
+                welcome: "🔓 欢迎", sessionClosed: "会话已关闭",
+                whatsappMsg: "你好 IT，我是 *{name}*。\n\n我为我的区域申请以下设备：\n\n"
+            }
+        };
+
+        const ITEM_DICT = {
+            'Mouse': { es: 'Mouse', en: 'Mouse', zh: '鼠标' },
+            'Teclado': { es: 'Teclado', en: 'Keyboard', zh: '键盘' },
+            'Audífonos simples': { es: 'Audífonos simples', en: 'Basic Headphones', zh: '普通耳机' },
+            'Audífonos dobles': { es: 'Audífonos dobles', en: 'Dual Headphones', zh: '双耳耳机' },
+            'Cable de Red': { es: 'Cable de Red', en: 'Network Cable', zh: '网线' },
+            'Cable de Poder': { es: 'Cable de Poder', en: 'Power Cable', zh: '电源线' },
+            'Cámara': { es: 'Cámara', en: 'Webcam', zh: '摄像头' },
+            'Cable VGA': { es: 'Cable VGA', en: 'VGA Cable', zh: 'VGA线' },
+            'Cargador de laptop': { es: 'Cargador de laptop', en: 'Laptop Charger', zh: '笔记本充电器' }
+        };
+        const CAT_DICT = {
+            'Periféricos': { es: 'Periféricos', en: 'Peripherals', zh: '外设' },
+            'Audio': { es: 'Audio', en: 'Audio', zh: '音频' },
+            'Conectividad': { es: 'Conectividad', en: 'Connectivity', zh: '连接' },
+            'Energía': { es: 'Energía', en: 'Power', zh: '电源' },
+            'Video': { es: 'Video', en: 'Video', zh: '视频' }
+        };
+
+        let currentLang = localStorage.getItem('sicp_lang') || 'es';
+        document.getElementById('langSelector').value = currentLang;
+
+        function t(key) {
+            return i18n[currentLang][key] || i18n['es'][key] || key;
+        }
 
         // ==========================================
-        // CONFIGURACIÓN DE GOOGLE FORMS (BASE DE DATOS AUDITORÍA)
+        // 🌙 MODO OSCURO
         // ==========================================
+        let isDarkMode = localStorage.getItem('sicp_theme') === 'dark' || (!('sicp_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
+
+        function updateThemeUI() {
+            const icon = document.getElementById('theme-icon');
+            if (isDarkMode) {
+                document.documentElement.classList.add('dark');
+                icon.setAttribute('data-lucide', 'sun');
+            } else {
+                document.documentElement.classList.remove('dark');
+                icon.setAttribute('data-lucide', 'moon');
+            }
+            lucide.createIcons();
+        }
+
+        function toggleTheme() {
+            isDarkMode = !isDarkMode;
+            localStorage.setItem('sicp_theme', isDarkMode ? 'dark' : 'light');
+            updateThemeUI();
+        }
+
+        function changeLang(lang) {
+            currentLang = lang;
+            localStorage.setItem('sicp_lang', lang);
+            document.getElementById('header-title').innerHTML = `${t('headerTitle')} <span class="text-indigo-400 font-normal hidden sm:inline">- Fydi</span>`;
+            document.getElementById('btn-admin-text').innerText = t('admin');
+            document.getElementById('cart-btn-text').innerText = t('cartBtn');
+            render();
+        }
+
+        // ==========================================
+        // 🔗 CONEXIÓN Y DATOS
+        // ==========================================
+        const EXCEL_API_URL = "https://script.google.com/macros/s/AKfycbz_h3px13ylzRHTLnS_-3VymsP71xeTKRS20pg_otpUHArax3mAiqnTImf2pmyO5Q7-hw/exec"; 
         const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfFxX65M8NgVPHB09LqC-mIRFi5_owL5G73EszBKKQNZlVVrQ/formResponse";
         const ENTRY_NAME = "entry.519287369"; 
         const ENTRY_ITEMS = "entry.747711175"; 
         const ENTRY_STATUS = "entry.000000000"; 
 
-        // ==========================================
-        // 🔒 SEGURIDAD Y PINES PERSONALES
-        // ==========================================
         const ADMIN_USERS = {
             "2026": "David Cajias",
             "1234": "Joel Congache" 
         };
         let currentAdminSession = ""; 
 
-        // ==========================================
-        // LISTA DE LÍDERES
-        // ==========================================
         const LIDERES = [
             "Anderson Guzman - Líder", "Asdrubal - Líder", "Brandon Castillo - Líder", "Brandon Jacome - Líder",
             "Bryan Briones - G.C.", "Carolina Sangucho - Líder", "Cinthya Pavon - Líder", "Cristian Chiliguano - Líder",
@@ -104,19 +250,16 @@
             "Romel Chuchimbe - Líder", "Sabrina - Líder", "Samantha Fonseca - Líder", "Stalin Cabascango - Líder"
         ];
 
-        // ==========================================
-        // INVENTARIO BASE 
-        // ==========================================
         const DEFAULT_INVENTORY = [
-            { id: '1', stock: 10, name: 'Mouse', category: 'Periféricos', icon: 'mouse', color: 'text-blue-500', bg: 'bg-blue-100' },
-            { id: '2', stock: 5, name: 'Teclado', category: 'Periféricos', icon: 'keyboard', color: 'text-indigo-500', bg: 'bg-indigo-100' },
-            { id: '3', stock: 0, name: 'Audífonos simples', category: 'Audio', icon: 'headphones', color: 'text-emerald-500', bg: 'bg-emerald-100' },
-            { id: '4', stock: 20, name: 'Audífonos dobles', category: 'Audio', icon: 'headset', color: 'text-teal-500', bg: 'bg-teal-100' },
-            { id: '5', stock: 50, name: 'Cable de Red', category: 'Conectividad', icon: 'network', color: 'text-orange-500', bg: 'bg-orange-100' },
-            { id: '6', stock: 15, name: 'Cable de Poder', category: 'Energía', icon: 'plug', color: 'text-red-500', bg: 'bg-red-100' },
-            { id: '7', stock: 3, name: 'Cámara', category: 'Video', icon: 'camera', color: 'text-purple-500', bg: 'bg-purple-100' },
-            { id: '8', stock: 30, name: 'Cable VGA', category: 'Video', icon: 'cable', color: 'text-cyan-500', bg: 'bg-cyan-100' },
-            { id: '9', stock: 10, name: 'Cargador de laptop', category: 'Energía', icon: 'battery-charging', color: 'text-yellow-500', bg: 'bg-yellow-100' },
+            { id: '1', stock: 10, name: 'Mouse', category: 'Periféricos', icon: 'mouse', color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
+            { id: '2', stock: 5, name: 'Teclado', category: 'Periféricos', icon: 'keyboard', color: 'text-indigo-500 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },
+            { id: '3', stock: 0, name: 'Audífonos simples', category: 'Audio', icon: 'headphones', color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+            { id: '4', stock: 20, name: 'Audífonos dobles', category: 'Audio', icon: 'headset', color: 'text-teal-500 dark:text-teal-400', bg: 'bg-teal-100 dark:bg-teal-900/30' },
+            { id: '5', stock: 50, name: 'Cable de Red', category: 'Conectividad', icon: 'network', color: 'text-orange-500 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/30' },
+            { id: '6', stock: 15, name: 'Cable de Poder', category: 'Energía', icon: 'plug', color: 'text-red-500 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30' },
+            { id: '7', stock: 3, name: 'Cámara', category: 'Video', icon: 'camera', color: 'text-purple-500 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30' },
+            { id: '8', stock: 30, name: 'Cable VGA', category: 'Video', icon: 'cable', color: 'text-cyan-500 dark:text-cyan-400', bg: 'bg-cyan-100 dark:bg-cyan-900/30' },
+            { id: '9', stock: 10, name: 'Cargador de laptop', category: 'Energía', icon: 'battery-charging', color: 'text-yellow-500 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
         ];
 
         let INVENTORY = [...DEFAULT_INVENTORY];
@@ -124,8 +267,6 @@
         let cart = {};
         let currentView = 'catalog'; 
         let isSyncing = false;
-        
-        // Timer para la sincronización en segundo plano
         let backgroundSyncTimer = null;
 
         const container = document.getElementById('app-container');
@@ -138,13 +279,13 @@
             document.getElementById('toast-msg').innerHTML = msg;
             
             if(type === 'error') {
-                iconContainer.className = 'bg-red-500/20 p-2 rounded-full text-red-500';
+                iconContainer.className = 'bg-red-500/20 p-2 rounded-full text-red-500 dark:text-red-400';
                 iconContainer.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5"></i>';
             } else if (type === 'success') {
-                iconContainer.className = 'bg-emerald-500/20 p-2 rounded-full text-emerald-500';
+                iconContainer.className = 'bg-emerald-500/20 p-2 rounded-full text-emerald-500 dark:text-emerald-400';
                 iconContainer.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i>';
             } else {
-                iconContainer.className = 'bg-indigo-500/20 p-2 rounded-full text-indigo-400';
+                iconContainer.className = 'bg-indigo-500/20 p-2 rounded-full text-indigo-500 dark:text-indigo-400';
                 iconContainer.innerHTML = '<i data-lucide="info" class="w-5 h-5"></i>';
             }
             
@@ -153,42 +294,33 @@
             setTimeout(() => toast.classList.add('translate-x-[150%]'), 4000);
         }
 
-        // --- LÓGICA DE SINCRONIZACIÓN MAESTRA (MANUAL Y AL INICIAR) ---
         async function loadData() {
             if (!EXCEL_API_URL) return;
-
             isSyncing = true;
             render();
-            
             try {
                 const url = EXCEL_API_URL + "?action=read_all&t=" + new Date().getTime();
                 const res = await fetch(url, { redirect: 'follow' });
-                
-                if (!res.ok) throw new Error('Error en la respuesta del servidor');
+                if (!res.ok) throw new Error('Error en servidor');
                 const data = await res.json(); 
                 
+                let actualizoAlgo = false;
                 if (data.inventory) {
                     INVENTORY.forEach(item => {
                         if (data.inventory[item.id] !== undefined) {
                             item.stock = parseInt(data.inventory[item.id]);
+                            actualizoAlgo = true;
                         }
                     });
                 }
-
-                if (data.pending) {
-                    PENDING_REQUESTS = data.pending;
-                }
+                if (data.pending) PENDING_REQUESTS = data.pending;
                 
                 localStorage.setItem('sicp_stock_data', JSON.stringify(INVENTORY));
                 localStorage.setItem('sicp_pending_requests', JSON.stringify(PENDING_REQUESTS));
-
             } catch(e) {
-                console.error("Error conectando a Excel:", e);
-                showToast("⚠️ Modo sin conexión. Usando memoria local.");
-                
+                console.error(e);
                 const savedInv = localStorage.getItem('sicp_stock_data');
                 if (savedInv) INVENTORY = JSON.parse(savedInv);
-                
                 const savedReq = localStorage.getItem('sicp_pending_requests');
                 if (savedReq) PENDING_REQUESTS = JSON.parse(savedReq);
             } finally {
@@ -197,14 +329,10 @@
             }
         }
 
-        // --- LÓGICA DE SINCRONIZACIÓN EN SEGUNDO PLANO (TIEMPO REAL) ---
         function startBackgroundSync() {
             if (backgroundSyncTimer) clearInterval(backgroundSyncTimer);
-            
-            // Cada 10 segundos irá a buscar nuevas solicitudes a Excel
             backgroundSyncTimer = setInterval(async () => {
                 if (currentView !== 'admin' || !EXCEL_API_URL) return;
-                
                 try {
                     const url = EXCEL_API_URL + "?action=read_all&t=" + new Date().getTime();
                     const res = await fetch(url, { redirect: 'follow' });
@@ -212,8 +340,6 @@
                     const data = await res.json(); 
                     
                     let hasChanges = false;
-
-                    // Validar si hay cambios en solicitudes pendientes
                     if (data.pending) {
                         const currentPendStr = JSON.stringify(PENDING_REQUESTS);
                         const newPendStr = JSON.stringify(data.pending);
@@ -223,71 +349,42 @@
                             hasChanges = true;
                         }
                     }
-
-                    // Validar si hay cambios en inventario
                     if (data.inventory) {
                         INVENTORY.forEach(item => {
                             if (data.inventory[item.id] !== undefined) {
                                 const newStock = parseInt(data.inventory[item.id]);
-                                if (item.stock !== newStock) {
-                                    item.stock = newStock;
-                                    hasChanges = true;
-                                }
+                                if (item.stock !== newStock) { item.stock = newStock; hasChanges = true; }
                             }
                         });
                         if (hasChanges) localStorage.setItem('sicp_stock_data', JSON.stringify(INVENTORY));
                     }
 
-                    // Si encontró cambios, recargamos la pantalla, EXCEPTO si el admin está tecleando algo
-                    if (hasChanges) {
-                        if (document.activeElement.tagName !== 'INPUT') {
-                            render();
-                            showToast("¡Nuevas solicitudes recibidas!", "success");
-                        }
+                    if (hasChanges && document.activeElement.tagName !== 'INPUT') {
+                        render();
                     }
-                } catch(e) {
-                    console.error("Error en sincronización silenciosa:", e);
-                }
+                } catch(e) {}
             }, 10000); 
         }
 
         function stopBackgroundSync() {
-            if (backgroundSyncTimer) {
-                clearInterval(backgroundSyncTimer);
-                backgroundSyncTimer = null;
-            }
+            if (backgroundSyncTimer) { clearInterval(backgroundSyncTimer); backgroundSyncTimer = null; }
         }
 
-        // Ajuste Rápido de Stock (Columna izquierda Admin)
         async function adminUpdateStock(id, nombreProducto, newStock) {
             const item = INVENTORY.find(i => i.id === id);
             item.stock = parseInt(newStock) || 0;
-            
             localStorage.setItem('sicp_stock_data', JSON.stringify(INVENTORY));
             render(); 
 
             if (!EXCEL_API_URL) return;
-
-            showToast(`Sincronizando <b>${item.name}</b>... ⏳`, 'info');
-
             try {
                 const url = `${EXCEL_API_URL}?action=update&id=${id}&stock=${item.stock}&t=${new Date().getTime()}`;
-                const res = await fetch(url, { redirect: 'follow' });
-                if (!res.ok) throw new Error("Fallo en la respuesta");
-                showToast(`✅ <b>${item.name}</b> guardado (${item.stock} uds.)`, 'success');
-            } catch(e) {
-                showToast(`❌ Error guardando ${item.name}.`, 'error');
-            }
+                await fetch(url, { redirect: 'follow' });
+            } catch(e) { showToast(`❌ Error API`, 'error'); }
         }
 
-        // --- PROCESAR SOLICITUD PENDIENTE (DESPACHO) ---
         async function processRequest(reqId) {
-            if (!currentAdminSession) {
-                alert("Error de sesión. Vuelve a ingresar tu PIN.");
-                goToAdmin();
-                return;
-            }
-            
+            if (!currentAdminSession) { goToAdmin(); return; }
             const request = PENDING_REQUESTS.find(r => r.id === reqId);
             if (!request) return;
             
@@ -303,10 +400,9 @@
                      const invItem = INVENTORY.find(i => i.id === itemReq.id);
                      if (invItem) {
                          if (approvedQty > invItem.stock) {
-                             alert(`No puedes aprobar ${approvedQty} unidades de ${itemReq.name}. Solo hay ${invItem.stock} en stock.`);
+                             alert(`Stock insuficiente de ${itemReq.name}`);
                              return;
                          }
-                         
                          invItem.stock = Math.max(0, invItem.stock - approvedQty);
                          updates.push({id: invItem.id, stock: invItem.stock});
                          
@@ -319,61 +415,32 @@
                  }
             }
 
-            if (finalItemsText === "") {
-                alert("La cantidad está en 0. Si no vas a entregar nada, usa el botón rojo de Rechazar.");
-                return;
-            }
+            if (finalItemsText === "") return;
             
-            // Guardar local preventivo
             localStorage.setItem('sicp_stock_data', JSON.stringify(INVENTORY));
             PENDING_REQUESTS = PENDING_REQUESTS.filter(r => r.id !== reqId);
             localStorage.setItem('sicp_pending_requests', JSON.stringify(PENDING_REQUESTS));
             
-            // REGISTRO OFICIAL EN EXCEL (Formulario)
             submitToGoogleForms(request.leaderName, finalItemsText, `PROCESADA (${currentAdminSession})`);
-            
             render(); 
             
-            // ELIMINAR DE EXCEL 'Pendientes' Y DESCONTAR STOCK
             if (EXCEL_API_URL) {
-                showToast(`Despachando equipos... ⏳`, "info");
                 try {
-                    await Promise.all(updates.map(u => {
-                        const url = `${EXCEL_API_URL}?action=update&id=${u.id}&stock=${u.stock}&t=${new Date().getTime()}`;
-                        return fetch(url, { redirect: 'follow' });
-                    }));
-                    
-                    const delUrl = `${EXCEL_API_URL}?action=remove_pending&reqId=${reqId}&t=${new Date().getTime()}`;
-                    await fetch(delUrl, { redirect: 'follow' });
-                    
-                    showToast("✅ Despachado y registrado en Excel.", "success");
-                } catch(e) {
-                    showToast("❌ Error al descontar de la base de datos.", "error");
-                }
+                    await Promise.all(updates.map(u => fetch(`${EXCEL_API_URL}?action=update&id=${u.id}&stock=${u.stock}&t=${new Date().getTime()}`, { redirect: 'follow' })));
+                    await fetch(`${EXCEL_API_URL}?action=remove_pending&reqId=${reqId}&t=${new Date().getTime()}`, { redirect: 'follow' });
+                } catch(e) {}
             }
         }
         
-        // --- RECHAZAR SOLICITUD ---
         function rejectRequest(reqId) {
-            if (confirm("¿Estás seguro de rechazar este pedido por completo?")) {
+            if (confirm("¿Rechazar pedido?")) {
                 const request = PENDING_REQUESTS.find(r => r.id === reqId);
                 let originalItemsText = request.items.map(i => `${i.qty}x ${i.name}`).join(', ');
-                
-                // Anotar en Excel Formulario como Rechazada
                 submitToGoogleForms(request.leaderName, originalItemsText, `RECHAZADA (${currentAdminSession})`);
-
-                // Borrar local
                 PENDING_REQUESTS = PENDING_REQUESTS.filter(r => r.id !== reqId);
                 localStorage.setItem('sicp_pending_requests', JSON.stringify(PENDING_REQUESTS));
                 render();
-
-                // Borrar de Excel 'Pendientes'
-                if (EXCEL_API_URL) {
-                    const delUrl = `${EXCEL_API_URL}?action=remove_pending&reqId=${reqId}&t=${new Date().getTime()}`;
-                    fetch(delUrl, { redirect: 'follow' }).catch(e=>console.error(e));
-                }
-
-                showToast("🚫 Solicitud rechazada. Registrado en Excel.", "info");
+                if (EXCEL_API_URL) fetch(`${EXCEL_API_URL}?action=remove_pending&reqId=${reqId}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
             }
         }
 
@@ -381,63 +448,37 @@
             const item = INVENTORY.find(i => i.id === id);
             const currentQty = cart[id] || 0;
             const newQty = currentQty + change;
-
-            if (newQty > item.stock) {
-                alert(`¡Stock insuficiente! Solo quedan ${item.stock} unidades de ${item.name}.`);
-                return;
-            }
-
+            if (newQty > item.stock) return;
             cart[id] = newQty;
             if (cart[id] <= 0) delete cart[id];
             render();
         }
 
         function getTotalItems() { return Object.values(cart).reduce((a, b) => a + b, 0); }
-        
-        function goToCheckout() { 
-            stopBackgroundSync(); 
-            currentView = 'checkout'; 
-            render(); 
-            window.scrollTo(0, 0); 
-        }
-        
-        function goToCatalog() { 
-            stopBackgroundSync(); 
-            currentView = 'catalog'; 
-            loadData(); 
-            window.scrollTo(0, 0); 
-        }
+        function goToCheckout() { stopBackgroundSync(); currentView = 'checkout'; render(); window.scrollTo(0, 0); }
+        function goToCatalog() { stopBackgroundSync(); currentView = 'catalog'; loadData(); window.scrollTo(0, 0); }
         
         function goToAdmin() { 
-            if(currentAdminSession) {
-                currentView = 'admin';
-                loadData().then(() => startBackgroundSync()); 
-            } else {
-                currentView = 'login_admin'; 
-            }
-            render(); 
-            window.scrollTo(0, 0); 
+            if(currentAdminSession) { currentView = 'admin'; loadData().then(() => startBackgroundSync()); } 
+            else { currentView = 'login_admin'; }
+            render(); window.scrollTo(0, 0); 
         }
 
         function exitAdmin() {
-            stopBackgroundSync();
-            currentAdminSession = ""; 
-            goToCatalog();
-            showToast("Sesión cerrada", "info");
+            stopBackgroundSync(); currentAdminSession = ""; goToCatalog(); showToast(t('sessionClosed'), "info");
         }
 
         function verifyAdminPin(event) {
             event.preventDefault();
             const pin = document.getElementById('adminPinInput').value;
-            
             if (ADMIN_USERS[pin]) {
                 currentAdminSession = ADMIN_USERS[pin]; 
                 currentView = 'admin';
-                loadData().then(() => startBackgroundSync()); // Carga datos y prende sincronizador
+                loadData().then(() => startBackgroundSync()); 
                 render();
-                showToast(`🔓 Bienvenido, ${currentAdminSession}`, "success");
+                showToast(`${t('welcome')}, ${currentAdminSession}`, "success");
             } else {
-                showToast("❌ PIN incorrecto", "error");
+                showToast(t('errorPin'), "error");
                 document.getElementById('adminPinInput').value = ''; 
                 document.getElementById('adminPinInput').focus();    
             }
@@ -451,21 +492,14 @@
                 document.body.appendChild(iframe);
             }
             let form = document.createElement('form'); form.action = GOOGLE_FORM_URL; form.method = 'POST'; form.target = 'hidden_iframe';
-            
             let finalName = name;
             if (statusText) {
                 if (ENTRY_STATUS && ENTRY_STATUS !== "entry.000000000") {
-                    let inputStatus = document.createElement('input'); 
-                    inputStatus.type = 'hidden'; inputStatus.name = ENTRY_STATUS; inputStatus.value = statusText; 
-                    form.appendChild(inputStatus);
-                } else {
-                    finalName = `${name} [${statusText}]`;
-                }
+                    let inputStatus = document.createElement('input'); inputStatus.type = 'hidden'; inputStatus.name = ENTRY_STATUS; inputStatus.value = statusText; form.appendChild(inputStatus);
+                } else { finalName = `${name} [${statusText}]`; }
             }
-
             let inputName = document.createElement('input'); inputName.type = 'hidden'; inputName.name = ENTRY_NAME; inputName.value = finalName; form.appendChild(inputName);
             let inputItems = document.createElement('input'); inputItems.type = 'hidden'; inputItems.name = ENTRY_ITEMS; inputItems.value = itemsText; form.appendChild(inputItems);
-            
             document.body.appendChild(form); form.submit();
         }
 
@@ -473,43 +507,30 @@
             event.preventDefault();
             const nameSelect = document.getElementById('leaderName');
             const name = nameSelect.value;
-            
-            if (!name || name === "") {
-                alert('Por favor selecciona tu nombre de la lista');
-                nameSelect.focus();
-                return;
-            }
+            if (!name) return;
 
-            let messageWA = `Hola Sistemas, soy *${name.trim()}*.%0A%0ASolicito los siguientes equipos para mi área:%0A%0A`;
+            let messageWA = t('whatsappMsg').replace('{name}', name.trim());
             let reqItems = [];
 
             for (const [id, qty] of Object.entries(cart)) {
                 const item = INVENTORY.find(i => i.id === id);
-                messageWA += `▪️ ${qty}x ${item.name}%0A`;
+                const dispName = ITEM_DICT[item.name]?.[currentLang] || item.name;
+                messageWA += `▪️ ${qty}x ${dispName}%0A`;
+                // Original name goes to DB
                 reqItems.push({ id: item.id, name: item.name, qty: qty });
             }
 
-            messageWA += `%0A_Enviado desde el Portal de Solicitudes SISTEMAS_FYDI_`;
+            messageWA += t('whatsappOutro');
             
-            const newRequest = {
-                id: 'req_' + Date.now(),
-                leaderName: name.trim(),
-                items: reqItems,
-                date: new Date().toLocaleString()
-            };
+            const newRequest = { id: 'req_' + Date.now(), leaderName: name.trim(), items: reqItems, date: new Date().toLocaleString() };
 
-            // 1. Enviar a la nueva pestaña de Excel 'Pendientes'
             if (EXCEL_API_URL) {
                 const itemsStr = encodeURIComponent(JSON.stringify(reqItems));
-                const url = `${EXCEL_API_URL}?action=add_pending&reqId=${newRequest.id}&leader=${encodeURIComponent(newRequest.leaderName)}&items=${itemsStr}&date=${encodeURIComponent(newRequest.date)}&t=${new Date().getTime()}`;
-                fetch(url, { redirect: 'follow' }).catch(e=>console.error(e));
+                fetch(`${EXCEL_API_URL}?action=add_pending&reqId=${newRequest.id}&leader=${encodeURIComponent(newRequest.leaderName)}&items=${itemsStr}&date=${encodeURIComponent(newRequest.date)}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
             }
 
-            // 2. Guardar backup local
             PENDING_REQUESTS.push(newRequest);
             localStorage.setItem('sicp_pending_requests', JSON.stringify(PENDING_REQUESTS));
-
-            // 3. Abrir WhatsApp
             window.open(`https://api.whatsapp.com/send?text=${messageWA}`, '_blank');
             
             cart = {};
@@ -521,42 +542,55 @@
         function render() {
             let html = '';
             
+            // Re-bind header
+            document.getElementById('header-title').innerHTML = `${t('headerTitle')} <span class="text-indigo-400 font-normal hidden sm:inline">- Fydi</span>`;
+            document.getElementById('btn-admin-text').innerText = t('admin');
+            document.getElementById('cart-btn-text').innerText = t('cartBtn');
+
             if (currentView === 'catalog') {
                 floatingCart.style.display = getTotalItems() > 0 ? 'flex' : 'none';
                 cartCountEl.innerText = getTotalItems();
 
                 if (isSyncing) {
                     html += `
-                    <div class="text-center py-20 text-indigo-500">
+                    <div class="text-center py-20 text-indigo-500 dark:text-indigo-400">
                         <i data-lucide="loader-2" class="w-12 h-12 animate-spin mx-auto mb-4"></i>
-                        <p class="font-bold text-lg mt-2">Conectando con bodega...</p>
+                        <p class="font-bold text-lg mt-2">${t('connecting')}</p>
                     </div>`;
                 } else {
-                    html += '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">';
+                    html += `
+                    <div class="mb-10 text-center animate-fade-in-up">
+                        <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">${t('catTitle')}</h2>
+                        <p class="text-slate-500 dark:text-slate-400 mt-2">${t('catSub')}</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">`;
                     
                     INVENTORY.forEach(item => {
                         const qty = cart[item.id] || 0;
                         const isOutOfStock = item.stock <= 0; 
                         
+                        const dispName = ITEM_DICT[item.name]?.[currentLang] || item.name;
+                        const dispCat = CAT_DICT[item.category]?.[currentLang] || item.category;
+                        
                         html += `
-                        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col h-full relative ${isOutOfStock ? 'opacity-60 grayscale-[50%]' : 'hover:shadow-md transition-shadow'}">
+                        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full relative ${isOutOfStock ? 'opacity-60 grayscale-[50%]' : 'hover:shadow-md transition-shadow'}">
                             ${isOutOfStock ? `
-                            <div class="absolute inset-0 bg-white/40 z-10 flex items-center justify-center backdrop-blur-[1px]">
-                                <div class="bg-red-500 text-white px-4 py-1.5 rounded-lg font-black tracking-widest text-sm shadow-lg border border-white transform -rotate-12">AGOTADO</div>
+                            <div class="absolute inset-0 bg-white/40 dark:bg-slate-900/60 z-10 flex items-center justify-center backdrop-blur-[1px]">
+                                <div class="bg-red-500 text-white px-4 py-1.5 rounded-lg font-black tracking-widest text-sm shadow-lg border border-red-400 transform -rotate-12">${t('outOfStock')}</div>
                             </div>` : `
-                            <div class="absolute top-2 right-2 z-10 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">Disp: ${item.stock}</div>
+                            <div class="absolute top-2 right-2 z-10 bg-slate-800 dark:bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm border border-slate-700">${t('disp')} ${item.stock}</div>
                             `}
                             <div class="h-32 flex items-center justify-center ${item.bg}"><i data-lucide="${item.icon}" class="${item.color}" style="width: 48px; height: 48px;"></i></div>
-                            <div class="p-5 flex flex-col flex-grow relative bg-white">
+                            <div class="p-5 flex flex-col flex-grow relative">
                                 <div class="mb-4 flex-grow text-center">
-                                    <p class="text-xs text-slate-500 font-semibold mb-1 uppercase tracking-wider">${item.category}</p>
-                                    <h3 class="text-lg font-bold text-slate-800 leading-tight">${item.name}</h3>
+                                    <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1 uppercase tracking-wider">${dispCat}</p>
+                                    <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">${dispName}</h3>
                                 </div>
-                                <div class="mt-auto pt-4 border-t border-slate-100">
-                                    <div class="flex items-center bg-slate-50 rounded-lg p-1 w-full justify-between border border-slate-200 relative z-20">
-                                        <button onclick="updateCart('${item.id}', -1)" ${qty === 0 || isOutOfStock ? 'disabled' : ''} class="p-2 rounded-md hover:bg-white text-slate-600 disabled:opacity-30 transition-all shadow-sm"><i data-lucide="minus" class="w-4 h-4"></i></button>
-                                        <span class="font-bold text-slate-800 w-8 text-center text-lg">${qty}</span>
-                                        <button onclick="updateCart('${item.id}', 1)" ${isOutOfStock || qty >= item.stock ? 'disabled' : ''} class="p-2 rounded-md bg-white text-indigo-600 shadow-sm hover:text-indigo-800 transition-all border border-slate-100 disabled:opacity-30 disabled:shadow-none"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                                <div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700">
+                                    <div class="flex items-center bg-slate-50 dark:bg-slate-900/50 rounded-lg p-1 w-full justify-between border border-slate-200 dark:border-slate-600 relative z-20">
+                                        <button onclick="updateCart('${item.id}', -1)" ${qty === 0 || isOutOfStock ? 'disabled' : ''} class="p-2 rounded-md hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 transition-all shadow-sm"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                                        <span class="font-bold text-slate-800 dark:text-slate-100 w-8 text-center text-lg">${qty}</span>
+                                        <button onclick="updateCart('${item.id}', 1)" ${isOutOfStock || qty >= item.stock ? 'disabled' : ''} class="p-2 rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm hover:text-indigo-800 dark:hover:text-indigo-300 transition-all border border-slate-100 dark:border-slate-700 disabled:opacity-30 disabled:shadow-none"><i data-lucide="plus" class="w-4 h-4"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -568,40 +602,39 @@
             else if (currentView === 'login_admin') {
                 floatingCart.style.display = 'none';
                 html += `
-                <div class="max-w-md mx-auto mt-12 text-center animate-fade-in-up bg-white p-8 md:p-10 rounded-3xl shadow-xl border border-slate-200">
+                <div class="max-w-md mx-auto mt-12 text-center animate-fade-in-up bg-white dark:bg-slate-800 p-8 md:p-10 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700">
                     <div class="flex justify-center mb-6">
-                        <div class="bg-slate-100 p-5 rounded-full text-slate-800 shadow-inner">
+                        <div class="bg-slate-100 dark:bg-slate-900 p-5 rounded-full text-slate-800 dark:text-slate-200 shadow-inner">
                             <i data-lucide="lock" style="width: 48px; height: 48px;"></i>
                         </div>
                     </div>
-                    <h2 class="text-3xl font-black text-slate-800 mb-2">Ingresa tu PIN</h2>
-                    <p class="text-slate-500 mb-8 text-sm font-medium">El sistema registrará tus operaciones bajo tu nombre.</p>
+                    <h2 class="text-3xl font-black text-slate-800 dark:text-white mb-2">${t('loginTitle')}</h2>
+                    <p class="text-slate-500 dark:text-slate-400 mb-8 text-sm font-medium">${t('loginSub')}</p>
                     <form onsubmit="verifyAdminPin(event)">
-                        <input type="password" id="adminPinInput" placeholder="****" class="w-full border-2 border-slate-200 rounded-2xl px-4 py-4 mb-6 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-center text-4xl tracking-[0.5em] font-black transition-all text-slate-800 shadow-sm" required autofocus>
-                        <button type="submit" class="w-full py-4 rounded-2xl bg-slate-900 text-white hover:bg-slate-800 font-black transition-all shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] flex items-center justify-center text-lg">
-                            <i data-lucide="key-round" class="w-6 h-6 mr-3"></i> Validar Identidad
+                        <input type="password" id="adminPinInput" placeholder="****" class="w-full border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-2xl px-4 py-4 mb-6 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-center text-4xl tracking-[0.5em] font-black transition-all text-slate-800 dark:text-white shadow-sm" required autofocus>
+                        <button type="submit" class="w-full py-4 rounded-2xl bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 font-black transition-all shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] flex items-center justify-center text-lg">
+                            <i data-lucide="key-round" class="w-6 h-6 mr-3"></i> ${t('verifyPin')}
                         </button>
                     </form>
-                    <button onclick="goToCatalog()" class="mt-8 text-sm text-slate-400 hover:text-slate-600 transition-colors font-bold">
-                        <i data-lucide="arrow-left" class="inline w-4 h-4 mr-1"></i> Cancelar
+                    <button onclick="goToCatalog()" class="mt-8 text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors font-bold">
+                        <i data-lucide="arrow-left" class="inline w-4 h-4 mr-1"></i> ${t('cancel')}
                     </button>
                 </div>`;
             }
             else if (currentView === 'admin') {
                 floatingCart.style.display = 'none';
-                
                 html += `
                 <div class="max-w-6xl mx-auto space-y-6 animate-fade-in-up pb-10">
-                    <div class="flex justify-between items-center mb-2">
-                        <button onclick="exitAdmin()" class="flex items-center text-red-500 hover:text-red-700 font-bold bg-white px-4 py-2 rounded-lg border border-red-200 shadow-sm transition-colors w-fit">
-                            <i data-lucide="log-out" class="w-4 h-4 mr-2"></i> Cerrar Sesión Segura
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2 gap-4">
+                        <button onclick="exitAdmin()" class="flex items-center text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-lg border border-red-200 dark:border-red-900/50 shadow-sm transition-colors w-full sm:w-auto justify-center">
+                            <i data-lucide="log-out" class="w-4 h-4 mr-2"></i> ${t('logout')}
                         </button>
                         
-                        <div class="flex items-center gap-3">
-                            <button onclick="loadData()" class="bg-indigo-100 text-indigo-700 hover:bg-indigo-200 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center transition-colors shadow-sm">
-                                <i data-lucide="refresh-cw" class="w-4 h-4 mr-1"></i> Actualizar
+                        <div class="flex items-center gap-3 w-full sm:w-auto justify-center">
+                            <button onclick="loadData()" class="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center transition-colors shadow-sm">
+                                <i data-lucide="refresh-cw" class="w-4 h-4 mr-1"></i> ${t('update')}
                             </button>
-                            <div class="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center shadow-sm">
+                            <div class="bg-slate-900 dark:bg-slate-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center shadow-sm border border-slate-700">
                                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span> ${currentAdminSession}
                             </div>
                         </div>
@@ -610,48 +643,49 @@
                     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                         
                         <!-- COLUMNA 1: SOLICITUDES PENDIENTES -->
-                        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col">
-                            <div class="bg-indigo-600 px-6 py-5 text-white">
-                                <h2 class="text-xl font-black flex items-center"><i data-lucide="inbox" class="mr-2"></i> Solicitudes Pendientes</h2>
-                                <p class="text-indigo-100 mt-1 text-xs">Revisa y ajusta las cantidades. Al despachar, se anotará en el Excel.</p>
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
+                            <div class="bg-indigo-600 dark:bg-indigo-500 px-6 py-5 text-white">
+                                <h2 class="text-xl font-black flex items-center"><i data-lucide="inbox" class="mr-2"></i> ${t('pendingTitle')}</h2>
+                                <p class="text-indigo-100 mt-1 text-xs">${t('pendingSub')}</p>
                             </div>
-                            <div class="p-6 flex-grow bg-slate-50">
+                            <div class="p-6 flex-grow bg-slate-50 dark:bg-slate-900/50">
                 `;
                 
                 if (PENDING_REQUESTS.length === 0) {
                     html += `
                                 <div class="text-center py-10">
-                                    <i data-lucide="check-circle-2" class="w-16 h-16 text-slate-300 mx-auto mb-4"></i>
-                                    <p class="text-slate-500 font-medium">No hay pedidos pendientes.</p>
+                                    <i data-lucide="check-circle-2" class="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4"></i>
+                                    <p class="text-slate-500 dark:text-slate-400 font-medium">${t('noPending')}</p>
                                 </div>
                     `;
                 } else {
                     html += `<div class="space-y-4">`;
                     PENDING_REQUESTS.forEach(req => {
-                        
-                        let itemsHtml = req.items.map((i, index) => `
+                        let itemsHtml = req.items.map((i, index) => {
+                            const dispName = ITEM_DICT[i.name]?.[currentLang] || i.name;
+                            return `
                             <li class="flex items-center justify-between text-sm mb-2 last:mb-0">
-                                <span class="text-slate-700 font-medium">${i.name} <span class="text-xs text-slate-400 block sm:inline">(Solicitó ${i.qty})</span></span>
-                                <div class="flex items-center bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm flex-shrink-0">
-                                    <input type="number" id="edit_qty_${req.id}_${index}" min="0" max="${i.qty}" value="${i.qty}" class="w-12 text-center py-1 focus:bg-indigo-50 outline-none text-slate-800 font-bold text-sm">
+                                <span class="text-slate-700 dark:text-slate-300 font-medium">${dispName} <span class="text-xs text-slate-400 block sm:inline">(${t('reqBy')} ${i.qty})</span></span>
+                                <div class="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg overflow-hidden shadow-sm flex-shrink-0">
+                                    <input type="number" id="edit_qty_${req.id}_${index}" min="0" max="${i.qty}" value="${i.qty}" class="w-12 text-center py-1 bg-transparent focus:bg-indigo-50 dark:focus:bg-indigo-900/30 outline-none text-slate-800 dark:text-slate-100 font-bold text-sm">
                                 </div>
-                            </li>
-                        `).join('');
+                            </li>`;
+                        }).join('');
                         
                         html += `
-                                <div class="bg-white p-4 rounded-xl border border-slate-200 shadow-sm animate-fade-in-up">
+                                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm animate-fade-in-up">
                                     <div class="flex justify-between items-start mb-3">
                                         <div>
-                                            <h4 class="font-bold text-slate-800">${req.leaderName}</h4>
-                                            <p class="text-xs text-slate-500">${req.date}</p>
+                                            <h4 class="font-bold text-slate-800 dark:text-white">${req.leaderName}</h4>
+                                            <p class="text-xs text-slate-500 dark:text-slate-400">${req.date}</p>
                                         </div>
                                     </div>
-                                    <ul class="mb-4 text-slate-600 bg-slate-50 p-3 rounded-lg border border-slate-100">
+                                    <ul class="mb-4 text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
                                         ${itemsHtml}
                                     </ul>
-                                    <div class="flex justify-between items-center border-t border-slate-100 pt-3 mt-2">
-                                        <button onclick="rejectRequest('${req.id}')" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-bold hover:bg-red-100 transition-colors" title="Rechazar pedido">Rechazar</button>
-                                        <button onclick="processRequest('${req.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors flex items-center shadow-md"><i data-lucide="check-square" class="w-4 h-4 mr-2"></i> Despachar</button>
+                                    <div class="flex justify-between items-center border-t border-slate-100 dark:border-slate-700 pt-3 mt-2">
+                                        <button onclick="rejectRequest('${req.id}')" class="px-4 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-sm font-bold hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors">${t('reject')}</button>
+                                        <button onclick="processRequest('${req.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors flex items-center shadow-md"><i data-lucide="check-square" class="w-4 h-4 mr-2"></i> ${t('dispatch')}</button>
                                     </div>
                                 </div>
                         `;
@@ -664,42 +698,40 @@
                         </div>
 
                         <!-- COLUMNA 2: STOCK GENERAL -->
-                        <div class="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden flex flex-col">
-                            <div class="bg-slate-900 px-6 py-5 text-white flex justify-between items-center">
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
+                            <div class="bg-slate-900 dark:bg-slate-950 px-6 py-5 text-white flex justify-between items-center">
                                 <div>
-                                    <h2 class="text-xl font-black flex items-center"><i data-lucide="package-search" class="mr-2 text-emerald-400"></i> Ajuste Directo de Stock</h2>
+                                    <h2 class="text-xl font-black flex items-center"><i data-lucide="package-search" class="mr-2 text-emerald-400"></i> ${t('stockTitle')}</h2>
                                     <p class="text-slate-400 mt-1 text-xs">
-                                        ${currentAdminSession === "David Cajias" 
-                                            ? "Usa esto solo para ingresar mercadería nueva a bodega." 
-                                            : "Vista de solo lectura del inventario actual."}
+                                        ${currentAdminSession === "David Cajias" ? t('stockSubAdmin') : t('stockSubRead')}
                                     </p>
                                 </div>
-                                ${currentAdminSession !== "David Cajias" ? '<div class="bg-slate-800 text-xs px-2 py-1 rounded flex items-center text-slate-400 border border-slate-700"><i data-lucide="lock" class="w-3 h-3 mr-1"></i> Solo Lectura</div>' : ''}
+                                ${currentAdminSession !== "David Cajias" ? `<div class="bg-slate-800 text-xs px-2 py-1 rounded flex items-center text-slate-400 border border-slate-700"><i data-lucide="lock" class="w-3 h-3 mr-1"></i> ${t('readOnly')}</div>` : ''}
                             </div>
                             <div class="p-6 overflow-x-auto">
                                 <table class="w-full text-left">
                                     <thead>
-                                        <tr class="text-[10px] font-black uppercase text-slate-400 border-b-2 border-slate-100">
-                                            <th class="pb-2">Producto</th>
-                                            <th class="pb-2 text-center">Unidades</th>
+                                        <tr class="text-[10px] font-black uppercase text-slate-400 border-b-2 border-slate-100 dark:border-slate-700">
+                                            <th class="pb-2">${t('product')}</th>
+                                            <th class="pb-2 text-center">${t('units')}</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="divide-y divide-slate-100">
+                                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                 `;
 
                 INVENTORY.forEach(item => {
                     const isZero = item.stock <= 0;
-                    
                     const isSuperAdmin = currentAdminSession === "David Cajias";
+                    const dispName = ITEM_DICT[item.name]?.[currentLang] || item.name;
                     
                     const stockInputHtml = isSuperAdmin 
-                        ? `<input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', '${item.name}', this.value)" class="w-16 text-center text-sm font-bold border border-slate-300 rounded px-1 py-1 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all ${isZero ? 'text-red-600 bg-red-50' : 'text-slate-700'}">`
-                        : `<div class="w-16 mx-auto text-center text-sm font-bold bg-slate-50 border border-slate-200 rounded px-1 py-1 cursor-not-allowed select-none ${isZero ? 'text-red-500 bg-red-50/50' : 'text-slate-500'}">${item.stock}</div>`;
+                        ? `<input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', '${item.name}', this.value)" class="w-16 text-center text-sm font-bold border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 rounded px-1 py-1 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all ${isZero ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20' : 'text-slate-700 dark:text-slate-200'}">`
+                        : `<div class="w-16 mx-auto text-center text-sm font-bold bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded px-1 py-1 cursor-not-allowed select-none ${isZero ? 'text-red-500 dark:text-red-400 bg-red-50/50 dark:bg-red-900/20' : 'text-slate-500 dark:text-slate-400'}">${item.stock}</div>`;
 
                     html += `
-                                        <tr class="hover:bg-slate-50 transition-colors">
+                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
                                             <td class="py-3 flex items-center gap-2">
-                                                <span class="font-semibold text-slate-700 text-sm">${item.name}</span>
+                                                <span class="font-semibold text-slate-700 dark:text-slate-200 text-sm">${dispName}</span>
                                             </td>
                                             <td class="py-3 text-center">
                                                 ${stockInputHtml}
@@ -712,8 +744,8 @@
                                     </tbody>
                                 </table>
                                 ${currentAdminSession === "David Cajias" ? `
-                                <div class="mt-8 text-center text-sm text-slate-500 font-medium bg-slate-50 p-4 rounded-xl border border-slate-200">
-                                    <i data-lucide="info" class="inline w-4 h-4 mr-1 text-indigo-500"></i> Modifica un número, haz clic fuera del cuadro para guardar automáticamente.
+                                <div class="mt-8 text-center text-sm text-slate-500 dark:text-slate-400 font-medium bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                    <i data-lucide="info" class="inline w-4 h-4 mr-1 text-indigo-500 dark:text-indigo-400"></i> ${t('saveHelp')}
                                 </div>
                                 ` : ''}
                             </div>
@@ -728,45 +760,46 @@
 
                 html += `
                 <div class="max-w-2xl mx-auto space-y-6 animate-fade-in-up pb-10">
-                    <button onclick="goToCatalog()" class="flex items-center text-indigo-600 hover:text-indigo-800 font-medium mb-4">
-                        <i data-lucide="arrow-left" class="w-5 h-5 mr-1"></i> Seguir agregando equipos
+                    <button onclick="goToCatalog()" class="flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium mb-4">
+                        <i data-lucide="arrow-left" class="w-5 h-5 mr-1"></i> ${t('backCatalog')}
                     </button>
-                    <h2 class="text-3xl font-bold text-slate-800">Finalizar Solicitud</h2>
-                    <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 md:p-8">
+                    <h2 class="text-3xl font-bold text-slate-800 dark:text-white">${t('checkoutTitle')}</h2>
+                    <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8">
                         <form onsubmit="processOrder(event)">
                             <div class="mb-8">
-                                <label class="block text-sm font-bold text-slate-700 mb-2">Tu Nombre (Líder Solicitante)</label>
-                                <select id="leaderName" required autofocus class="w-full border-2 border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-lg transition-all bg-white cursor-pointer appearance-none">
-                                    <option value="" disabled selected>-- Selecciona tu nombre en la lista --</option>
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">${t('leaderName')}</label>
+                                <select id="leaderName" required autofocus class="w-full border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none text-lg transition-all cursor-pointer">
+                                    <option value="" disabled selected>${t('selectName')}</option>
                                     ${opcionesLideres}
                                 </select>
                             </div>
                             
-                            <h3 class="font-bold text-slate-700 mb-4 border-b-2 border-slate-100 pb-2">Tu Pedido</h3>
-                            <ul class="divide-y divide-slate-100 mb-8">
+                            <h3 class="font-bold text-slate-700 dark:text-slate-300 mb-4 border-b-2 border-slate-100 dark:border-slate-700 pb-2">${t('yourOrder')}</h3>
+                            <ul class="divide-y divide-slate-100 dark:divide-slate-700 mb-8">
                 `;
                 
                 for (const [id, qty] of Object.entries(cart)) {
                     const item = INVENTORY.find(i => i.id === id);
+                    const dispName = ITEM_DICT[item.name]?.[currentLang] || item.name;
                     html += `
                         <li class="py-4 flex items-center justify-between">
                             <div class="flex items-center space-x-4">
                                 <div class="w-12 h-12 rounded-lg flex items-center justify-center ${item.bg}">
                                     <i data-lucide="${item.icon}" class="${item.color}"></i>
                                 </div>
-                                <p class="font-bold text-slate-800 text-lg">${item.name}</p>
+                                <p class="font-bold text-slate-800 dark:text-slate-200 text-lg">${dispName}</p>
                             </div>
-                            <span class="font-bold text-indigo-700 bg-indigo-50 px-4 py-2 rounded-lg text-lg border border-indigo-100">x${qty}</span>
+                            <span class="font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-2 rounded-lg text-lg border border-indigo-100 dark:border-indigo-800">x${qty}</span>
                         </li>
                     `;
                 }
 
                 html += `
                             </ul>
-                            <button type="submit" class="w-full py-4 text-lg rounded-xl bg-green-600 text-white hover:bg-green-700 focus:ring-green-500 shadow-md flex items-center justify-center font-black transition-all">
-                                <i data-lucide="send" class="w-6 h-6 mr-2"></i> Enviar Pedido
+                            <button type="submit" class="w-full py-4 text-lg rounded-xl bg-green-600 text-white hover:bg-green-700 shadow-md flex items-center justify-center font-black transition-all">
+                                <i data-lucide="send" class="w-6 h-6 mr-2"></i> ${t('sendOrder')}
                             </button>
-                            <p class="text-center text-xs text-slate-400 mt-4">Esto notificará a Sistemas. El stock no se descuenta hasta que recibas el equipo físicamente.</p>
+                            <p class="text-center text-xs text-slate-400 mt-4">${t('checkoutNote')}</p>
                         </form>
                     </div>
                 </div>`;
@@ -774,25 +807,25 @@
             else if (currentView === 'success') {
                 floatingCart.style.display = 'none';
                 html += `
-                <div class="max-w-md mx-auto mt-20 text-center animate-fade-in-up bg-white p-8 rounded-2xl shadow-sm border border-slate-200">
+                <div class="max-w-md mx-auto mt-20 text-center animate-fade-in-up bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
                     <div class="flex justify-center mb-6">
-                        <div class="bg-emerald-100 p-6 rounded-full text-emerald-600">
+                        <div class="bg-emerald-100 dark:bg-emerald-900/30 p-6 rounded-full text-emerald-600 dark:text-emerald-400">
                             <i data-lucide="check-circle" style="width: 64px; height: 64px;"></i>
                         </div>
                     </div>
-                    <h2 class="text-3xl font-bold text-slate-800 mb-4">¡Pedido Enviado!</h2>
-                    <p class="text-slate-600 mb-8 text-lg">
-                        El equipo de Sistemas ha recibido tu solicitud y está pendiente de aprobación.
+                    <h2 class="text-3xl font-bold text-slate-800 dark:text-white mb-4">${t('successTitle')}</h2>
+                    <p class="text-slate-600 dark:text-slate-300 mb-8 text-lg">
+                        ${t('successMsg1')}
                     </p>
-                    <p class="text-slate-500 text-sm mb-6">Recuerda presionar "Enviar" en el chat de WhatsApp que se acaba de abrir.</p>
-                    <button onclick="goToCatalog()" class="w-full py-3 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium transition-all">
-                        Volver al inicio
+                    <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">${t('successMsg2')}</p>
+                    <button onclick="goToCatalog()" class="w-full py-3 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium transition-all border border-slate-200 dark:border-slate-800">
+                        ${t('backStart')}
                     </button>
                 </div>`;
             }
 
             container.innerHTML = html;
-            lucide.createIcons(); 
+            updateThemeUI(); // Asegura que los íconos se rendericen y tengan la forma correcta
         }
 
         // Iniciar
