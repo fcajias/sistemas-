@@ -4,56 +4,39 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>SICP | Solicitudes-Sistemas</title>
-    
-    <!-- Script Anti-Parpadeo para Modo Oscuro -->
     <script>
         if (localStorage.getItem('sicp_theme') === 'dark' || (!('sicp_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
             document.documentElement.classList.add('dark');
         }
     </script>
-
-    <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
-        tailwind.config = {
-            darkMode: 'class', // Habilita el modo oscuro manual
-            theme: { extend: {} }
-        }
+        tailwind.config = { darkMode: 'class', theme: { extend: {} } }
     </script>
-    
-    <!-- Iconos de Lucide -->
     <script src="https://unpkg.com/lucide@latest"></script>
-    
     <style>
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
         .animate-fade-in-up { animation: fadeInUp 0.4s ease-out forwards; }
-        
-        /* Ocultar flechas en inputs numéricos */
-        input[type="number"]::-webkit-inner-spin-button, 
-        input[type="number"]::-webkit-outer-spin-button { 
-            -webkit-appearance: none; 
-            appearance: none;
-            margin: 0; 
+        input[type="number"]::-webkit-inner-spin-button, input[type="number"]::-webkit-outer-spin-button { -webkit-appearance: none; appearance: none; margin: 0; }
+        input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
+        @media print {
+            body { background: white !important; color: black !important; }
+            header, #floating-cart, .no-print { display: none !important; }
+            .print-full-width { width: 100% !important; max-width: 100% !important; }
+            .shadow-xl, .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
         }
-        input[type="number"] { 
-            -moz-appearance: textfield; 
-            appearance: textfield;
-        }
+        /* Barra de progreso CSS */
+        .progress-bar { transition: width 0.5s ease-in-out; }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200 pb-24 flex flex-col min-h-screen transition-colors duration-300">
     
-    <!-- TOAST NOTIFICATION -->
-    <div id="toast" class="fixed top-20 right-4 sm:right-8 bg-slate-900 dark:bg-slate-800 text-white px-5 py-3 rounded-2xl shadow-2xl transform transition-all duration-300 translate-x-[150%] z-50 flex items-center gap-3 font-medium border border-slate-700 dark:border-slate-600 z-[100]">
+    <div id="toast" class="fixed top-20 right-4 sm:right-8 bg-slate-900 dark:bg-slate-800 text-white px-5 py-3 rounded-2xl shadow-2xl transform transition-all duration-300 translate-x-[150%] z-50 flex items-center gap-3 font-medium border border-slate-700 dark:border-slate-600 z-[100] no-print">
         <div id="toast-icon" class="bg-indigo-500/20 p-1.5 rounded-full"><i data-lucide="info" class="text-indigo-400 w-5 h-5"></i></div>
         <span id="toast-msg"></span>
     </div>
 
-    <!-- HEADER -->
-    <header class="bg-slate-900 dark:bg-slate-950 text-white sticky top-0 z-40 shadow-md transition-colors duration-300">
+    <header class="bg-slate-900 dark:bg-slate-950 text-white sticky top-0 z-40 shadow-md transition-colors duration-300 no-print">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
             <div class="flex items-center space-x-3 cursor-pointer" onclick="goToCatalog()">
                 <i data-lucide="monitor" class="text-indigo-400"></i>
@@ -61,19 +44,14 @@
             </div>
             
             <div class="flex items-center space-x-3">
-                <!-- Selector de Idioma -->
                 <select id="langSelector" onchange="changeLang(this.value)" class="bg-slate-800 dark:bg-slate-900 text-slate-300 text-xs sm:text-sm px-2 py-1.5 rounded border border-slate-700 dark:border-slate-800 outline-none focus:border-indigo-500 cursor-pointer transition-colors">
                     <option value="es">🇪🇸 ES</option>
                     <option value="en">🇺🇸 EN</option>
                     <option value="zh">🇨🇳 ZH</option>
                 </select>
-
-                <!-- Botón de Tema (Oscuro/Claro) -->
                 <button onclick="toggleTheme()" class="text-slate-300 hover:text-white p-1.5 rounded-lg bg-slate-800 dark:bg-slate-900 border border-slate-700 dark:border-slate-800 transition-colors">
                     <i data-lucide="moon" id="theme-icon" class="w-4 h-4"></i>
                 </button>
-
-                <!-- Botón de Administrador -->
                 <button onclick="goToAdmin()" class="text-xs font-bold bg-slate-800 dark:bg-slate-900 hover:bg-slate-700 dark:hover:bg-slate-800 text-slate-300 px-3 py-1.5 rounded flex items-center gap-2 transition-colors border border-slate-700 dark:border-slate-800">
                     <i data-lucide="settings" class="w-4 h-4"></i> <span id="btn-admin-text">Admin</span>
                 </button>
@@ -81,18 +59,13 @@
         </div>
     </header>
 
-    <!-- MAIN CONTENT -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full" id="app-container">
-        <!-- El contenido se inyecta aquí -->
-    </main>
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full print-full-width" id="app-container"></main>
 
-    <!-- FOOTER COPYRIGHT -->
-    <footer class="w-full text-center py-6 mt-auto text-sm text-slate-400 dark:text-slate-500">
-        &copy; 2026 David - DevOps
+    <footer class="w-full text-center py-6 mt-auto text-sm text-slate-400 dark:text-slate-500 no-print">
+        &copy; 2026 David Cajias DevOps
     </footer>
 
-    <!-- FLOATING CART BUTTON -->
-    <div id="floating-cart" class="fixed bottom-6 left-0 right-0 flex justify-center z-50 hidden">
+    <div id="floating-cart" class="fixed bottom-6 left-0 right-0 flex justify-center z-50 hidden no-print">
         <button onclick="goToCheckout()" class="bg-indigo-600 dark:bg-indigo-500 text-white shadow-xl rounded-full px-8 py-4 text-lg font-medium flex items-center transition-all transform hover:scale-105">
             <i data-lucide="shopping-cart" class="mr-3"></i>
             <span id="cart-btn-text">Revisar Pedido</span> &nbsp;(<span id="cart-count">0</span>)
@@ -100,14 +73,11 @@
     </div>
 
     <script>
-        // ==========================================
-        // 🌍 SISTEMA DE MULTILENGUAJE (DICCIONARIO)
-        // ==========================================
         const i18n = {
             es: {
                 headerTitle: "SICP | Solicitudes", admin: "Admin", cartBtn: "Revisar Pedido",
-                catTitle: "¿Qué necesita tu equipo?", catSub: "Selecciona los periféricos",
-                connecting: "Conectando con bodega...", outOfStock: "AGOTADO", disp: "Disp:",
+                catTitle: "¿Qué necesita tu equipo?", catSub: "Selecciona los periféricos. El stock se actualiza en tiempo real.",
+                connecting: "Conectando con bodega...", outOfStock: "AGOTADO", lowStock: "ALERTA", disp: "Disp:",
                 checkoutTitle: "Finalizar Solicitud", leaderName: "Tu Nombre (Líder Solicitante)",
                 selectName: "-- Selecciona tu nombre en la lista --", yourOrder: "Tu Pedido", sendOrder: "Enviar Pedido",
                 checkoutNote: "Esto notificará a Sistemas. El stock no se descuenta hasta que recibas el equipo físicamente.",
@@ -115,54 +85,69 @@
                 successMsg2: "Recuerda presionar 'Enviar' en el chat de WhatsApp que se acaba de abrir.", backStart: "Volver al inicio",
                 loginTitle: "Ingresa tu PIN", loginSub: "El sistema registrará tus operaciones bajo tu nombre.",
                 verifyPin: "Validar Identidad", cancel: "Cancelar", backCatalog: "Volver al Catálogo",
-                logout: "Cerrar Sesión Segura", update: "Actualizar", pendingTitle: "Solicitudes Pendientes",
-                pendingSub: "Revisa y ajusta las cantidades. Al despachar, se anotará en el Excel.", noPending: "No hay pedidos pendientes.",
-                reqBy: "Solicitó", reject: "Rechazar", dispatch: "Despachar", stockTitle: "Ajuste Directo de Stock",
-                stockSubAdmin: "Usa esto solo para ingresar mercadería nueva a bodega.", stockSubRead: "Vista de solo lectura del inventario actual.",
-                readOnly: "Solo Lectura", product: "Producto", units: "Unidades",
-                saveHelp: "Modifica un número, haz clic fuera del cuadro para guardar automáticamente.", errorPin: "❌ PIN incorrecto",
+                logout: "Cerrar Sesión", update: "Actualizar", pendingTitle: "Solicitudes Pendientes",
+                pendingSub: "Revisa y ajusta las cantidades.", noPending: "No hay pedidos pendientes.",
+                reqBy: "Solicitó", reject: "Rechazar", dispatch: "Despachar", stockTitle: "Inventario General",
+                stockSubAdmin: "Ajusta las cantidades cuando llegue mercadería.", stockSubRead: "Vista de solo lectura.",
+                readOnly: "Solo Lectura", product: "Producto", units: "Stock",
+                saveHelp: "El sistema guarda automáticamente y registra quién hizo el último cambio.", errorPin: "❌ PIN incorrecto",
                 welcome: "🔓 Bienvenido", sessionClosed: "Sesión cerrada",
-                whatsappMsg: "Hola Sistemas, soy *{name}*.\n\nSolicito los siguientes equipos para mi área:\n\n"
+                whatsappMsg: "Hola Sistemas, soy *{name}*.\n\nSolicito los siguientes equipos para mi área:\n\n",
+                whatsappOutro: "\n_Enviado desde el Portal de Solicitudes SISTEMAS_FYDI_",
+                bossDashboard: "Analíticas Gerenciales", printReport: "Imprimir PDF",
+                totalItems: "Total Inventario", criticalStock: "Agotándose", outStock: "Sin Stock",
+                criticalTableTitle: "Alerta de Reabastecimiento Crítico", modBy: "Audit. Técnico", modDate: "Fecha",
+                analyticsTitle: "Estado de Abastecimiento", auditTitle: "Auditoría de Movimientos Recientes"
             },
             en: {
                 headerTitle: "SICP | IT Requests", admin: "Admin", cartBtn: "Review Order",
                 catTitle: "What does your team need?", catSub: "Select peripherals. Stock updates in real time.",
-                connecting: "Connecting to warehouse...", outOfStock: "OUT OF STOCK", disp: "Avail:",
-                checkoutTitle: "Finish Request", leaderName: "Your Name (Requesting Leader)",
-                selectName: "-- Select your name from the list --", yourOrder: "Your Order", sendOrder: "Send Order",
-                checkoutNote: "This will notify IT. Stock is not deducted until you physically receive the equipment.",
-                successTitle: "Order Sent!", successMsg1: "The IT team has received your request and is pending approval.",
-                successMsg2: "Remember to press 'Send' in the WhatsApp chat that just opened.", backStart: "Back to Home",
-                loginTitle: "Enter your PIN", loginSub: "The system will record your operations under your name.",
-                verifyPin: "Verify Identity", cancel: "Cancel", backCatalog: "Back to Catalog",
-                logout: "Secure Logout", update: "Refresh", pendingTitle: "Pending Requests",
-                pendingSub: "Review and adjust quantities. Upon dispatch, it will be logged in Excel.", noPending: "No pending orders.",
-                reqBy: "Requested", reject: "Reject", dispatch: "Dispatch", stockTitle: "Direct Stock Adjustment",
-                stockSubAdmin: "Use this only to enter new merchandise into the warehouse.", stockSubRead: "Read-only view of current inventory.",
-                readOnly: "Read Only", product: "Product", units: "Units",
-                saveHelp: "Modify a number, click outside the box to save automatically.", errorPin: "❌ Incorrect PIN",
+                connecting: "Connecting...", outOfStock: "EMPTY", lowStock: "ALERT", disp: "Avail:",
+                checkoutTitle: "Finish Request", leaderName: "Your Name",
+                selectName: "-- Select your name --", yourOrder: "Your Order", sendOrder: "Send Order",
+                checkoutNote: "This will notify IT.",
+                successTitle: "Order Sent!", successMsg1: "The IT team has received your request.",
+                successMsg2: "Remember to press 'Send' in WhatsApp.", backStart: "Back to Home",
+                loginTitle: "Enter PIN", loginSub: "Operations will be recorded under your name.",
+                verifyPin: "Verify", cancel: "Cancel", backCatalog: "Back to Catalog",
+                logout: "Logout", update: "Refresh", pendingTitle: "Pending Requests",
+                pendingSub: "Review and adjust.", noPending: "No pending orders.",
+                reqBy: "Requested", reject: "Reject", dispatch: "Dispatch", stockTitle: "Inventory",
+                stockSubAdmin: "Adjust quantities.", stockSubRead: "Read-only view.",
+                readOnly: "Read Only", product: "Product", units: "Stock",
+                saveHelp: "Autosaves changes.", errorPin: "❌ Incorrect PIN",
                 welcome: "🔓 Welcome", sessionClosed: "Session closed",
-                whatsappMsg: "Hello IT, I am *{name}*.\n\nI request the following equipment for my area:\n\n"
+                whatsappMsg: "Hello IT, I am *{name}*.\n\nI request the following equipment:\n\n",
+                whatsappOutro: "\n_Sent from IT Requests Portal_",
+                bossDashboard: "Executive Analytics", printReport: "Print PDF",
+                totalItems: "Total Inventory", criticalStock: "Running Low", outStock: "Out of Stock",
+                criticalTableTitle: "Critical Restock Alert", modBy: "Tech Audit", modDate: "Date",
+                analyticsTitle: "Supply Status", auditTitle: "Recent Movement Audit"
             },
             zh: {
                 headerTitle: "SICP | IT 需求", admin: "管理", cartBtn: "审查订单",
-                catTitle: "您的团队需要什么？", catSub: "选择外设。库存实时更新。",
-                connecting: "正在连接仓库...", outOfStock: "缺货", disp: "可用:",
-                checkoutTitle: "完成申请", leaderName: "您的姓名 (主管)",
-                selectName: "-- 从列表中选择您的名字 --", yourOrder: "您的订单", sendOrder: "发送订单",
-                checkoutNote: "这将通知IT部门。在您实际收到设备之前，库存不会扣除。",
-                successTitle: "订单已发送！", successMsg1: "IT团队已收到您的请求，正在等待批准。",
-                successMsg2: "请记住在刚刚打开的WhatsApp聊天中按“发送”。", backStart: "返回首页",
-                loginTitle: "输入您的PIN码", loginSub: "系统将以您的名义记录您的操作。",
-                verifyPin: "验证身份", cancel: "取消", backCatalog: "返回目录",
-                logout: "安全退出", update: "刷新", pendingTitle: "待处理请求",
-                pendingSub: "审查并调整数量。发货后，将记录在Excel中。", noPending: "没有待处理的订单。",
-                reqBy: "要求", reject: "拒绝", dispatch: "发货", stockTitle: "直接库存调整",
-                stockSubAdmin: "仅使用此功能将新商品录入仓库。", stockSubRead: "当前库存的只读视图。",
-                readOnly: "只读", product: "产品", units: "单位",
-                saveHelp: "修改数字，在框外单击以自动保存。", errorPin: "❌ PIN码错误",
-                welcome: "🔓 欢迎", sessionClosed: "会话已关闭",
-                whatsappMsg: "你好 IT，我是 *{name}*。\n\n我为我的区域申请以下设备：\n\n"
+                catTitle: "您的团队需要什么？", catSub: "库存实时更新。",
+                connecting: "正在连接...", outOfStock: "缺货", lowStock: "警报", disp: "可用:",
+                checkoutTitle: "完成申请", leaderName: "您的姓名",
+                selectName: "-- 选择您的名字 --", yourOrder: "您的订单", sendOrder: "发送订单",
+                checkoutNote: "这将通知IT部门。",
+                successTitle: "订单已发送！", successMsg1: "IT团队已收到您的请求。",
+                successMsg2: "请在WhatsApp中按“发送”。", backStart: "返回",
+                loginTitle: "输入PIN", loginSub: "系统将记录您的操作。",
+                verifyPin: "验证", cancel: "取消", backCatalog: "返回目录",
+                logout: "登出", update: "刷新", pendingTitle: "待处理请求",
+                pendingSub: "审查并调整数量。", noPending: "没有待处理订单。",
+                reqBy: "要求", reject: "拒绝", dispatch: "发货", stockTitle: "库存",
+                stockSubAdmin: "调整数量。", stockSubRead: "只读视图。",
+                readOnly: "只读", product: "产品", units: "库存",
+                saveHelp: "自动保存。", errorPin: "❌ PIN码错误",
+                welcome: "🔓 欢迎", sessionClosed: "已关闭",
+                whatsappMsg: "你好 IT，我是 *{name}*。\n\n我申请以下设备：\n\n",
+                whatsappOutro: "\n_发送自 IT 需求门户_",
+                bossDashboard: "执行分析", printReport: "打印 PDF",
+                totalItems: "总库存", criticalStock: "快用完了", outStock: "缺货",
+                criticalTableTitle: "严重补货警报", modBy: "技术审计", modDate: "日期",
+                analyticsTitle: "供应状态", auditTitle: "近期变动审计"
             }
         };
 
@@ -175,7 +160,7 @@
             'Cable de Poder': { es: 'Cable de Poder', en: 'Power Cable', zh: '电源线' },
             'Cámara': { es: 'Cámara', en: 'Webcam', zh: '摄像头' },
             'Cable VGA': { es: 'Cable VGA', en: 'VGA Cable', zh: 'VGA线' },
-            'Cargador de laptop': { es: 'Cargador de laptop', en: 'Laptop Charger', zh: '笔记本充电器' }
+            'Cargador de laptop': { es: 'Cargador de laptop', en: 'Laptop Charger', zh: '充电器' }
         };
         const CAT_DICT = {
             'Periféricos': { es: 'Periféricos', en: 'Peripherals', zh: '外设' },
@@ -186,57 +171,32 @@
         };
 
         let currentLang = localStorage.getItem('sicp_lang') || 'es';
-        document.getElementById('langSelector').value = currentLang;
+        function t(key) { return i18n[currentLang][key] || i18n['es'][key] || key; }
 
-        function t(key) {
-            return i18n[currentLang][key] || i18n['es'][key] || key;
-        }
-
-        // ==========================================
-        // 🌙 MODO OSCURO
-        // ==========================================
         let isDarkMode = localStorage.getItem('sicp_theme') === 'dark' || (!('sicp_theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches);
-
         function updateThemeUI() {
             const icon = document.getElementById('theme-icon');
-            if (isDarkMode) {
-                document.documentElement.classList.add('dark');
-                icon.setAttribute('data-lucide', 'sun');
-            } else {
-                document.documentElement.classList.remove('dark');
-                icon.setAttribute('data-lucide', 'moon');
-            }
+            if (isDarkMode) { document.documentElement.classList.add('dark'); icon.setAttribute('data-lucide', 'sun'); } 
+            else { document.documentElement.classList.remove('dark'); icon.setAttribute('data-lucide', 'moon'); }
             lucide.createIcons();
         }
-
         function toggleTheme() {
-            isDarkMode = !isDarkMode;
-            localStorage.setItem('sicp_theme', isDarkMode ? 'dark' : 'light');
-            updateThemeUI();
+            isDarkMode = !isDarkMode; localStorage.setItem('sicp_theme', isDarkMode ? 'dark' : 'light'); updateThemeUI();
         }
-
         function changeLang(lang) {
-            currentLang = lang;
-            localStorage.setItem('sicp_lang', lang);
-            document.getElementById('header-title').innerHTML = `${t('headerTitle')} <span class="text-indigo-400 font-normal hidden sm:inline">- Fydi</span>`;
-            document.getElementById('btn-admin-text').innerText = t('admin');
-            document.getElementById('cart-btn-text').innerText = t('cartBtn');
-            render();
+            currentLang = lang; localStorage.setItem('sicp_lang', lang); render();
         }
 
-        // ==========================================
-        // 🔗 CONEXIÓN Y DATOS
-        // ==========================================
-        const EXCEL_API_URL = "https://script.google.com/macros/s/AKfycbzMSezRZuhZiz8skRzeZhUE5j8dreiMA7C7oz4hDAIh91U_B13GRcHlg70_Y9YuoCTSlw/exec"; 
+        const EXCEL_API_URL = "https://script.google.com/macros/s/AKfycbyufsogzX2J-Pz43hTm8OX2udruHvWJcf-jm3BiQhPNddAG9ucpl_PammVnVKpWvrkJTg/exec"; 
         
         const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfFxX65M8NgVPHB09LqC-mIRFi5_owL5G73EszBKKQNZlVVrQ/formResponse";
         const ENTRY_NAME = "entry.519287369"; 
         const ENTRY_ITEMS = "entry.747711175"; 
-        const ENTRY_STATUS = "entry.000000000"; 
 
         const ADMIN_USERS = {
             "2026": "David Cajias",
-            "1234": "Joel Congache" 
+            "1234": "Joel Congache",
+            "9999": "Gerencia Fydi"
         };
         let currentAdminSession = ""; 
 
@@ -248,19 +208,19 @@
             "Ivy Estupinan - Líder", "Jeimmy Macias - Líder", "Jonathan Ramirez - Líder", "Jordan Trujillo - Líder",
             "Joshep Casarez - Líder","Juan Lopez - Líder", "Kyara - Líder", "Luis Betancour - Aud.", "Magaly - G.C.", "Noenmi - Líder",
             "Rafaela - G.C.", "Rayza - Líder", "Ricardo - Líder", "Roberto Flores - Líder", "Roger Garcia - Líder",
-            "Romel Chuchimbe - Líder", "Sabrina - Líder", "Samantha Fonseca - Líder", "Stalin Cabascango - Líder", "Victor - Líder"
+            "Romel Chuchimbe - Líder", "Sabrina - Líder", "Samantha Fonseca - Líder", "Stalin Cabascango - Líder"
         ];
 
         const DEFAULT_INVENTORY = [
-            { id: '1', stock: 10, name: 'Mouse', category: 'Periféricos', icon: 'mouse', color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
-            { id: '2', stock: 5, name: 'Teclado', category: 'Periféricos', icon: 'keyboard', color: 'text-indigo-500 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },
-            { id: '3', stock: 0, name: 'Audífonos simples', category: 'Audio', icon: 'headphones', color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
-            { id: '4', stock: 20, name: 'Audífonos dobles', category: 'Audio', icon: 'headset', color: 'text-teal-500 dark:text-teal-400', bg: 'bg-teal-100 dark:bg-teal-900/30' },
-            { id: '5', stock: 50, name: 'Cable de Red', category: 'Conectividad', icon: 'network', color: 'text-orange-500 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/30' },
-            { id: '6', stock: 15, name: 'Cable de Poder', category: 'Energía', icon: 'plug', color: 'text-red-500 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30' },
-            { id: '7', stock: 3, name: 'Cámara', category: 'Video', icon: 'camera', color: 'text-purple-500 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30' },
-            { id: '8', stock: 30, name: 'Cable VGA', category: 'Video', icon: 'cable', color: 'text-cyan-500 dark:text-cyan-400', bg: 'bg-cyan-100 dark:bg-cyan-900/30' },
-            { id: '9', stock: 10, name: 'Cargador de laptop', category: 'Energía', icon: 'battery-charging', color: 'text-yellow-500 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
+            { id: '1', stock: 10, lastModBy: '-', lastModDate: '-', maxStock: 50, name: 'Mouse', category: 'Periféricos', icon: 'mouse', color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
+            { id: '2', stock: 5, lastModBy: '-', lastModDate: '-', maxStock: 20, name: 'Teclado', category: 'Periféricos', icon: 'keyboard', color: 'text-indigo-500 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },
+            { id: '3', stock: 0, lastModBy: '-', lastModDate: '-', maxStock: 30, name: 'Audífonos simples', category: 'Audio', icon: 'headphones', color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+            { id: '4', stock: 20, lastModBy: '-', lastModDate: '-', maxStock: 50, name: 'Audífonos dobles', category: 'Audio', icon: 'headset', color: 'text-teal-500 dark:text-teal-400', bg: 'bg-teal-100 dark:bg-teal-900/30' },
+            { id: '5', stock: 50, lastModBy: '-', lastModDate: '-', maxStock: 100, name: 'Cable de Red', category: 'Conectividad', icon: 'network', color: 'text-orange-500 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/30' },
+            { id: '6', stock: 15, lastModBy: '-', lastModDate: '-', maxStock: 40, name: 'Cable de Poder', category: 'Energía', icon: 'plug', color: 'text-red-500 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30' },
+            { id: '7', stock: 3, lastModBy: '-', lastModDate: '-', maxStock: 10, name: 'Cámara', category: 'Video', icon: 'camera', color: 'text-purple-500 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30' },
+            { id: '8', stock: 30, lastModBy: '-', lastModDate: '-', maxStock: 60, name: 'Cable VGA', category: 'Video', icon: 'cable', color: 'text-cyan-500 dark:text-cyan-400', bg: 'bg-cyan-100 dark:bg-cyan-900/30' },
+            { id: '9', stock: 10, lastModBy: '-', lastModDate: '-', maxStock: 30, name: 'Cargador de laptop', category: 'Energía', icon: 'battery-charging', color: 'text-yellow-500 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
         ];
 
         let INVENTORY = [...DEFAULT_INVENTORY];
@@ -276,21 +236,8 @@
 
         function showToast(msg, type = 'info') {
             const toast = document.getElementById('toast');
-            const iconContainer = document.getElementById('toast-icon');
             document.getElementById('toast-msg').innerHTML = msg;
-            
-            if(type === 'error') {
-                iconContainer.className = 'bg-red-500/20 p-2 rounded-full text-red-500 dark:text-red-400';
-                iconContainer.innerHTML = '<i data-lucide="alert-circle" class="w-5 h-5"></i>';
-            } else if (type === 'success') {
-                iconContainer.className = 'bg-emerald-500/20 p-2 rounded-full text-emerald-500 dark:text-emerald-400';
-                iconContainer.innerHTML = '<i data-lucide="check-circle" class="w-5 h-5"></i>';
-            } else {
-                iconContainer.className = 'bg-indigo-500/20 p-2 rounded-full text-indigo-500 dark:text-indigo-400';
-                iconContainer.innerHTML = '<i data-lucide="info" class="w-5 h-5"></i>';
-            }
-            
-            lucide.createIcons();
+            toast.className = `fixed top-20 right-4 sm:right-8 text-white px-5 py-3 rounded-2xl shadow-2xl transform transition-all duration-300 translate-x-[150%] z-50 flex items-center gap-3 font-medium border ${type === 'error' ? 'bg-red-600 border-red-500' : type==='success' ? 'bg-emerald-600 border-emerald-500' : 'bg-slate-900 border-slate-700'} no-print`;
             toast.classList.remove('translate-x-[150%]');
             setTimeout(() => toast.classList.add('translate-x-[150%]'), 4000);
         }
@@ -300,31 +247,21 @@
             isSyncing = true;
             render();
             try {
-                const url = EXCEL_API_URL + "?action=read_all&t=" + new Date().getTime();
-                const res = await fetch(url, { redirect: 'follow' });
+                const res = await fetch(`${EXCEL_API_URL}?action=read_all&t=${new Date().getTime()}`, { redirect: 'follow' });
                 if (!res.ok) throw new Error('Error en servidor');
                 const data = await res.json(); 
                 
-                let actualizoAlgo = false;
                 if (data.inventory) {
                     INVENTORY.forEach(item => {
                         if (data.inventory[item.id] !== undefined) {
-                            item.stock = parseInt(data.inventory[item.id]);
-                            actualizoAlgo = true;
+                            item.stock = parseInt(data.inventory[item.id].stock);
+                            item.lastModBy = data.inventory[item.id].lastModifiedBy || "-";
+                            item.lastModDate = data.inventory[item.id].lastModifiedDate || "-";
                         }
                     });
                 }
                 if (data.pending) PENDING_REQUESTS = data.pending;
-                
-                localStorage.setItem('sicp_stock_data', JSON.stringify(INVENTORY));
-                localStorage.setItem('sicp_pending_requests', JSON.stringify(PENDING_REQUESTS));
-            } catch(e) {
-                console.error(e);
-                const savedInv = localStorage.getItem('sicp_stock_data');
-                if (savedInv) INVENTORY = JSON.parse(savedInv);
-                const savedReq = localStorage.getItem('sicp_pending_requests');
-                if (savedReq) PENDING_REQUESTS = JSON.parse(savedReq);
-            } finally {
+            } catch(e) {} finally {
                 isSyncing = false;
                 render();
             }
@@ -335,53 +272,41 @@
             backgroundSyncTimer = setInterval(async () => {
                 if (currentView !== 'admin' || !EXCEL_API_URL) return;
                 try {
-                    const url = EXCEL_API_URL + "?action=read_all&t=" + new Date().getTime();
-                    const res = await fetch(url, { redirect: 'follow' });
+                    const res = await fetch(`${EXCEL_API_URL}?action=read_all&t=${new Date().getTime()}`, { redirect: 'follow' });
                     if (!res.ok) return;
                     const data = await res.json(); 
-                    
                     let hasChanges = false;
-                    if (data.pending) {
-                        const currentPendStr = JSON.stringify(PENDING_REQUESTS);
-                        const newPendStr = JSON.stringify(data.pending);
-                        if (currentPendStr !== newPendStr) {
-                            PENDING_REQUESTS = data.pending;
-                            localStorage.setItem('sicp_pending_requests', newPendStr);
-                            hasChanges = true;
-                        }
+                    
+                    if (data.pending && JSON.stringify(PENDING_REQUESTS) !== JSON.stringify(data.pending)) {
+                        PENDING_REQUESTS = data.pending; hasChanges = true;
                     }
                     if (data.inventory) {
                         INVENTORY.forEach(item => {
                             if (data.inventory[item.id] !== undefined) {
-                                const newStock = parseInt(data.inventory[item.id]);
-                                if (item.stock !== newStock) { item.stock = newStock; hasChanges = true; }
+                                const newData = data.inventory[item.id];
+                                if (item.stock !== parseInt(newData.stock) || item.lastModDate !== newData.lastModifiedDate) { 
+                                    item.stock = parseInt(newData.stock); item.lastModBy = newData.lastModifiedBy; item.lastModDate = newData.lastModifiedDate; hasChanges = true; 
+                                }
                             }
                         });
-                        if (hasChanges) localStorage.setItem('sicp_stock_data', JSON.stringify(INVENTORY));
                     }
-
-                    if (hasChanges && document.activeElement.tagName !== 'INPUT') {
-                        render();
-                    }
+                    if (hasChanges && document.activeElement.tagName !== 'INPUT') render();
                 } catch(e) {}
             }, 10000); 
         }
+        function stopBackgroundSync() { if (backgroundSyncTimer) { clearInterval(backgroundSyncTimer); backgroundSyncTimer = null; } }
 
-        function stopBackgroundSync() {
-            if (backgroundSyncTimer) { clearInterval(backgroundSyncTimer); backgroundSyncTimer = null; }
-        }
-
-        async function adminUpdateStock(id, nombreProducto, newStock) {
+        async function adminUpdateStock(id, newStock) {
             const item = INVENTORY.find(i => i.id === id);
             item.stock = parseInt(newStock) || 0;
-            localStorage.setItem('sicp_stock_data', JSON.stringify(INVENTORY));
+            item.lastModBy = currentAdminSession;
+            item.lastModDate = new Date().toLocaleTimeString();
             render(); 
 
             if (!EXCEL_API_URL) return;
             try {
-                const url = `${EXCEL_API_URL}?action=update&id=${id}&stock=${item.stock}&t=${new Date().getTime()}`;
-                await fetch(url, { redirect: 'follow' });
-            } catch(e) { showToast(`❌ Error API`, 'error'); }
+                await fetch(`${EXCEL_API_URL}?action=update&id=${id}&stock=${item.stock}&user=${encodeURIComponent(currentAdminSession)}&date=${encodeURIComponent(item.lastModDate)}&t=${new Date().getTime()}`, { redirect: 'follow' });
+            } catch(e) { showToast(`Error API`, 'error'); }
         }
 
         async function processRequest(reqId) {
@@ -391,6 +316,7 @@
             
             let updates = [];
             let finalItemsText = "";
+            const nowStr = new Date().toLocaleTimeString();
             
             for (let index = 0; index < request.items.length; index++) {
                  const itemReq = request.items[index];
@@ -400,34 +326,23 @@
                  if (approvedQty > 0) {
                      const invItem = INVENTORY.find(i => i.id === itemReq.id);
                      if (invItem) {
-                         if (approvedQty > invItem.stock) {
-                             alert(`Stock insuficiente de ${itemReq.name}`);
-                             return;
-                         }
+                         if (approvedQty > invItem.stock) { alert(`Stock insuficiente`); return; }
                          invItem.stock = Math.max(0, invItem.stock - approvedQty);
-                         updates.push({id: invItem.id, stock: invItem.stock});
-                         
-                         if (approvedQty !== itemReq.qty) {
-                             finalItemsText += `${approvedQty}x ${itemReq.name} (Pidió ${itemReq.qty}), `;
-                         } else {
-                             finalItemsText += `${approvedQty}x ${itemReq.name}, `;
-                         }
+                         invItem.lastModBy = currentAdminSession;
+                         invItem.lastModDate = nowStr;
+                         updates.push({id: invItem.id, stock: invItem.stock, user: currentAdminSession, date: nowStr});
+                         finalItemsText += approvedQty !== itemReq.qty ? `${approvedQty}x ${itemReq.name} (Pidió ${itemReq.qty}), ` : `${approvedQty}x ${itemReq.name}, `;
                      }
                  }
             }
-
             if (finalItemsText === "") return;
-            
-            localStorage.setItem('sicp_stock_data', JSON.stringify(INVENTORY));
             PENDING_REQUESTS = PENDING_REQUESTS.filter(r => r.id !== reqId);
-            localStorage.setItem('sicp_pending_requests', JSON.stringify(PENDING_REQUESTS));
-            
             submitToGoogleForms(request.leaderName, finalItemsText, `PROCESADA (${currentAdminSession})`);
             render(); 
             
             if (EXCEL_API_URL) {
                 try {
-                    await Promise.all(updates.map(u => fetch(`${EXCEL_API_URL}?action=update&id=${u.id}&stock=${u.stock}&t=${new Date().getTime()}`, { redirect: 'follow' })));
+                    await Promise.all(updates.map(u => fetch(`${EXCEL_API_URL}?action=update&id=${u.id}&stock=${u.stock}&user=${encodeURIComponent(u.user)}&date=${encodeURIComponent(u.date)}&t=${new Date().getTime()}`, { redirect: 'follow' })));
                     await fetch(`${EXCEL_API_URL}?action=remove_pending&reqId=${reqId}&t=${new Date().getTime()}`, { redirect: 'follow' });
                 } catch(e) {}
             }
@@ -439,7 +354,6 @@
                 let originalItemsText = request.items.map(i => `${i.qty}x ${i.name}`).join(', ');
                 submitToGoogleForms(request.leaderName, originalItemsText, `RECHAZADA (${currentAdminSession})`);
                 PENDING_REQUESTS = PENDING_REQUESTS.filter(r => r.id !== reqId);
-                localStorage.setItem('sicp_pending_requests', JSON.stringify(PENDING_REQUESTS));
                 render();
                 if (EXCEL_API_URL) fetch(`${EXCEL_API_URL}?action=remove_pending&reqId=${reqId}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
             }
@@ -447,8 +361,7 @@
 
         function updateCart(id, change) {
             const item = INVENTORY.find(i => i.id === id);
-            const currentQty = cart[id] || 0;
-            const newQty = currentQty + change;
+            const newQty = (cart[id] || 0) + change;
             if (newQty > item.stock) return;
             cart[id] = newQty;
             if (cart[id] <= 0) delete cart[id];
@@ -465,9 +378,7 @@
             render(); window.scrollTo(0, 0); 
         }
 
-        function exitAdmin() {
-            stopBackgroundSync(); currentAdminSession = ""; goToCatalog(); showToast(t('sessionClosed'), "info");
-        }
+        function exitAdmin() { stopBackgroundSync(); currentAdminSession = ""; goToCatalog(); showToast(t('sessionClosed'), "info"); }
 
         function verifyAdminPin(event) {
             event.preventDefault();
@@ -481,24 +392,15 @@
             } else {
                 showToast(t('errorPin'), "error");
                 document.getElementById('adminPinInput').value = ''; 
-                document.getElementById('adminPinInput').focus();    
             }
         }
 
         function submitToGoogleForms(name, itemsText, statusText) {
             if(GOOGLE_FORM_URL.includes("TU_ID_DE_FORMULARIO_AQUI")) return;
             let iframe = document.getElementById('hidden_iframe');
-            if (!iframe) {
-                iframe = document.createElement('iframe'); iframe.name = 'hidden_iframe'; iframe.id = 'hidden_iframe'; iframe.style.display = 'none';
-                document.body.appendChild(iframe);
-            }
+            if (!iframe) { iframe = document.createElement('iframe'); iframe.name = 'hidden_iframe'; iframe.id = 'hidden_iframe'; iframe.style.display = 'none'; document.body.appendChild(iframe); }
             let form = document.createElement('form'); form.action = GOOGLE_FORM_URL; form.method = 'POST'; form.target = 'hidden_iframe';
-            let finalName = name;
-            if (statusText) {
-                if (ENTRY_STATUS && ENTRY_STATUS !== "entry.000000000") {
-                    let inputStatus = document.createElement('input'); inputStatus.type = 'hidden'; inputStatus.name = ENTRY_STATUS; inputStatus.value = statusText; form.appendChild(inputStatus);
-                } else { finalName = `${name} [${statusText}]`; }
-            }
+            let finalName = statusText ? `${name} [${statusText}]` : name;
             let inputName = document.createElement('input'); inputName.type = 'hidden'; inputName.name = ENTRY_NAME; inputName.value = finalName; form.appendChild(inputName);
             let inputItems = document.createElement('input'); inputItems.type = 'hidden'; inputItems.name = ENTRY_ITEMS; inputItems.value = itemsText; form.appendChild(inputItems);
             document.body.appendChild(form); form.submit();
@@ -506,44 +408,35 @@
 
         function processOrder(event) {
             event.preventDefault();
-            const nameSelect = document.getElementById('leaderName');
-            const name = nameSelect.value;
+            const name = document.getElementById('leaderName').value;
             if (!name) return;
-
+            
             let messageWA = t('whatsappMsg').replace('{name}', name.trim());
             let reqItems = [];
-
+            
             for (const [id, qty] of Object.entries(cart)) {
                 const item = INVENTORY.find(i => i.id === id);
                 const dispName = ITEM_DICT[item.name]?.[currentLang] || item.name;
-                messageWA += `▪️ ${qty}x ${dispName}%0A`;
-                // Original name goes to DB
+                messageWA += `▪️ ${qty}x ${dispName}\n`;
                 reqItems.push({ id: item.id, name: item.name, qty: qty });
             }
-
-            messageWA += t('whatsappOutro');
             
+            messageWA += t('whatsappOutro');
+
             const newRequest = { id: 'req_' + Date.now(), leaderName: name.trim(), items: reqItems, date: new Date().toLocaleString() };
 
             if (EXCEL_API_URL) {
-                const itemsStr = encodeURIComponent(JSON.stringify(reqItems));
-                fetch(`${EXCEL_API_URL}?action=add_pending&reqId=${newRequest.id}&leader=${encodeURIComponent(newRequest.leaderName)}&items=${itemsStr}&date=${encodeURIComponent(newRequest.date)}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
+                fetch(`${EXCEL_API_URL}?action=add_pending&reqId=${newRequest.id}&leader=${encodeURIComponent(newRequest.leaderName)}&items=${encodeURIComponent(JSON.stringify(reqItems))}&date=${encodeURIComponent(newRequest.date)}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
             }
-
             PENDING_REQUESTS.push(newRequest);
-            localStorage.setItem('sicp_pending_requests', JSON.stringify(PENDING_REQUESTS));
-            window.open(`https://api.whatsapp.com/send?text=${messageWA}`, '_blank');
             
-            cart = {};
-            currentView = 'success';
-            render();
-            window.scrollTo(0, 0);
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(messageWA)}`, '_blank');
+            
+            cart = {}; currentView = 'success'; render(); window.scrollTo(0, 0);
         }
 
         function render() {
             let html = '';
-            
-            // Re-bind header
             document.getElementById('header-title').innerHTML = `${t('headerTitle')} <span class="text-indigo-400 font-normal hidden sm:inline">- Fydi</span>`;
             document.getElementById('btn-admin-text').innerText = t('admin');
             document.getElementById('cart-btn-text').innerText = t('cartBtn');
@@ -553,45 +446,35 @@
                 cartCountEl.innerText = getTotalItems();
 
                 if (isSyncing) {
-                    html += `
-                    <div class="text-center py-20 text-indigo-500 dark:text-indigo-400">
-                        <i data-lucide="loader-2" class="w-12 h-12 animate-spin mx-auto mb-4"></i>
-                        <p class="font-bold text-lg mt-2">${t('connecting')}</p>
-                    </div>`;
+                    html += `<div class="text-center py-20 text-indigo-500"><i data-lucide="loader-2" class="w-12 h-12 animate-spin mx-auto mb-4"></i><p class="font-bold text-lg mt-2">${t('connecting')}</p></div>`;
                 } else {
                     html += `
                     <div class="mb-10 text-center animate-fade-in-up">
                         <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">${t('catTitle')}</h2>
-                        <p class="text-slate-500 dark:text-slate-400 mt-2">${t('catSub')}</p>
+                        <p class="text-slate-500 mt-2">${t('catSub')}</p>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">`;
-                    
                     INVENTORY.forEach(item => {
                         const qty = cart[item.id] || 0;
                         const isOutOfStock = item.stock <= 0; 
-                        
+                        const isLowStock = item.stock > 0 && item.stock <= 3; 
                         const dispName = ITEM_DICT[item.name]?.[currentLang] || item.name;
-                        const dispCat = CAT_DICT[item.category]?.[currentLang] || item.category;
                         
                         html += `
-                        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full relative ${isOutOfStock ? 'opacity-60 grayscale-[50%]' : 'hover:shadow-md transition-shadow'}">
-                            ${isOutOfStock ? `
-                            <div class="absolute inset-0 bg-white/40 dark:bg-slate-900/60 z-10 flex items-center justify-center backdrop-blur-[1px]">
-                                <div class="bg-red-500 text-white px-4 py-1.5 rounded-lg font-black tracking-widest text-sm shadow-lg border border-red-400 transform -rotate-12">${t('outOfStock')}</div>
-                            </div>` : `
-                            <div class="absolute top-2 right-2 z-10 bg-slate-800 dark:bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm border border-slate-700">${t('disp')} ${item.stock}</div>
-                            `}
+                        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full relative ${isOutOfStock ? 'opacity-60 grayscale-[50%]' : 'hover:shadow-md'}">
+                            ${isOutOfStock ? `<div class="absolute inset-0 bg-white/40 dark:bg-slate-900/60 z-10 flex items-center justify-center backdrop-blur-[1px]"><div class="bg-red-500 text-white px-4 py-1.5 rounded-lg font-black tracking-widest text-sm shadow-lg transform -rotate-12">${t('outOfStock')}</div></div>` 
+                            : isLowStock ? `<div class="absolute top-2 right-2 z-10 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm animate-pulse">${t('lowStock')}: ${item.stock}</div>` 
+                            : `<div class="absolute top-2 right-2 z-10 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">${t('disp')} ${item.stock}</div>`}
                             <div class="h-32 flex items-center justify-center ${item.bg}"><i data-lucide="${item.icon}" class="${item.color}" style="width: 48px; height: 48px;"></i></div>
                             <div class="p-5 flex flex-col flex-grow relative">
                                 <div class="mb-4 flex-grow text-center">
-                                    <p class="text-xs text-slate-500 dark:text-slate-400 font-semibold mb-1 uppercase tracking-wider">${dispCat}</p>
                                     <h3 class="text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">${dispName}</h3>
                                 </div>
                                 <div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700">
                                     <div class="flex items-center bg-slate-50 dark:bg-slate-900/50 rounded-lg p-1 w-full justify-between border border-slate-200 dark:border-slate-600 relative z-20">
-                                        <button onclick="updateCart('${item.id}', -1)" ${qty === 0 || isOutOfStock ? 'disabled' : ''} class="p-2 rounded-md hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 transition-all shadow-sm"><i data-lucide="minus" class="w-4 h-4"></i></button>
-                                        <span class="font-bold text-slate-800 dark:text-slate-100 w-8 text-center text-lg">${qty}</span>
-                                        <button onclick="updateCart('${item.id}', 1)" ${isOutOfStock || qty >= item.stock ? 'disabled' : ''} class="p-2 rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm hover:text-indigo-800 dark:hover:text-indigo-300 transition-all border border-slate-100 dark:border-slate-700 disabled:opacity-30 disabled:shadow-none"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                                        <button onclick="updateCart('${item.id}', -1)" ${qty === 0 || isOutOfStock ? 'disabled' : ''} class="p-2 rounded-md hover:bg-white text-slate-600 disabled:opacity-30 shadow-sm"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                                        <span class="font-bold text-slate-800 dark:text-white w-8 text-center text-lg">${qty}</span>
+                                        <button onclick="updateCart('${item.id}', 1)" ${isOutOfStock || qty >= item.stock ? 'disabled' : ''} class="p-2 rounded-md bg-white dark:bg-slate-800 text-indigo-600 shadow-sm disabled:opacity-30"><i data-lucide="plus" class="w-4 h-4"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -604,155 +487,185 @@
                 floatingCart.style.display = 'none';
                 html += `
                 <div class="max-w-md mx-auto mt-12 text-center animate-fade-in-up bg-white dark:bg-slate-800 p-8 md:p-10 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700">
-                    <div class="flex justify-center mb-6">
-                        <div class="bg-slate-100 dark:bg-slate-900 p-5 rounded-full text-slate-800 dark:text-slate-200 shadow-inner">
-                            <i data-lucide="lock" style="width: 48px; height: 48px;"></i>
-                        </div>
-                    </div>
+                    <div class="flex justify-center mb-6"><div class="bg-slate-100 dark:bg-slate-900 p-5 rounded-full text-slate-800 dark:text-white"><i data-lucide="lock" style="width: 48px; height: 48px;"></i></div></div>
                     <h2 class="text-3xl font-black text-slate-800 dark:text-white mb-2">${t('loginTitle')}</h2>
-                    <p class="text-slate-500 dark:text-slate-400 mb-8 text-sm font-medium">${t('loginSub')}</p>
                     <form onsubmit="verifyAdminPin(event)">
-                        <input type="password" id="adminPinInput" placeholder="****" class="w-full border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-2xl px-4 py-4 mb-6 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none text-center text-4xl tracking-[0.5em] font-black transition-all text-slate-800 dark:text-white shadow-sm" required autofocus>
-                        <button type="submit" class="w-full py-4 rounded-2xl bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 font-black transition-all shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] flex items-center justify-center text-lg">
-                            <i data-lucide="key-round" class="w-6 h-6 mr-3"></i> ${t('verifyPin')}
-                        </button>
+                        <input type="password" id="adminPinInput" placeholder="****" class="w-full border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-2xl px-4 py-4 mb-6 focus:ring-4 outline-none text-center text-4xl tracking-[0.5em] font-black text-slate-800 dark:text-white" required autofocus>
+                        <button type="submit" class="w-full py-4 rounded-2xl bg-slate-900 dark:bg-indigo-600 text-white font-black flex items-center justify-center text-lg shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)]"><i data-lucide="key-round" class="w-6 h-6 mr-3"></i> ${t('verifyPin')}</button>
                     </form>
-                    <button onclick="goToCatalog()" class="mt-8 text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors font-bold">
-                        <i data-lucide="arrow-left" class="inline w-4 h-4 mr-1"></i> ${t('cancel')}
-                    </button>
+                    <button onclick="goToCatalog()" class="mt-8 text-sm text-slate-400 font-bold"><i data-lucide="arrow-left" class="inline w-4 h-4 mr-1"></i> ${t('cancel')}</button>
                 </div>`;
             }
             else if (currentView === 'admin') {
                 floatingCart.style.display = 'none';
+                
+                const lowStockItems = INVENTORY.filter(i => i.stock > 0 && i.stock <= 3);
+                const outOfStockItems = INVENTORY.filter(i => i.stock === 0);
+                const totalAlerts = lowStockItems.length + outOfStockItems.length;
+                const totalInventory = INVENTORY.reduce((a, b) => a + b.stock, 0);
+                
+                const isBoss = currentAdminSession === "Gerencia Fydi";
+                const isTech = !isBoss; 
+
+                html += `<div class="max-w-6xl mx-auto space-y-6 animate-fade-in-up pb-10">`;
+
                 html += `
-                <div class="max-w-6xl mx-auto space-y-6 animate-fade-in-up pb-10">
-                    <div class="flex flex-col sm:flex-row justify-between items-center mb-2 gap-4">
-                        <button onclick="exitAdmin()" class="flex items-center text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-lg border border-red-200 dark:border-red-900/50 shadow-sm transition-colors w-full sm:w-auto justify-center">
-                            <i data-lucide="log-out" class="w-4 h-4 mr-2"></i> ${t('logout')}
-                        </button>
-                        
-                        <div class="flex items-center gap-3 w-full sm:w-auto justify-center">
-                            <button onclick="loadData()" class="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center transition-colors shadow-sm">
-                                <i data-lucide="refresh-cw" class="w-4 h-4 mr-1"></i> ${t('update')}
-                            </button>
-                            <div class="bg-slate-900 dark:bg-slate-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center shadow-sm border border-slate-700">
-                                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span> ${currentAdminSession}
-                            </div>
+                    <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4 no-print">
+                        <button onclick="exitAdmin()" class="flex items-center text-red-500 font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-lg border border-red-200 shadow-sm"><i data-lucide="log-out" class="w-4 h-4 mr-2"></i> ${t('logout')}</button>
+                        <div class="flex items-center gap-3">
+                            ${isBoss ? `<button onclick="window.print()" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center shadow-sm"><i data-lucide="printer" class="w-4 h-4 mr-1"></i> ${t('printReport')}</button>` : ''}
+                            <button onclick="loadData()" class="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center shadow-sm"><i data-lucide="refresh-cw" class="w-4 h-4 mr-1"></i> ${t('update')}</button>
+                            <div class="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span> ${currentAdminSession}</div>
+                        </div>
+                    </div>
+                `;
+
+                if (isBoss) {
+                    html += `
+                    <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 mb-6">
+                        <h2 class="text-2xl font-black text-slate-800 dark:text-white flex items-center"><i data-lucide="pie-chart" class="mr-3 text-indigo-500"></i> ${t('bossDashboard')}</h2>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border-l-4 border-indigo-500">
+                            <p class="text-slate-500 text-sm font-bold uppercase tracking-wider mb-2">${t('totalItems')}</p>
+                            <p class="text-4xl font-black text-slate-800 dark:text-white">${totalInventory}</p>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border-l-4 border-red-500">
+                            <p class="text-slate-500 text-sm font-bold uppercase tracking-wider mb-2">${t('criticalStock')}</p>
+                            <p class="text-4xl font-black text-red-600 flex items-center">${totalAlerts} ${totalAlerts > 0 ? '<i data-lucide="alert-triangle" class="w-6 h-6 ml-3 animate-pulse"></i>' : ''}</p>
+                        </div>
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border-l-4 border-yellow-500">
+                            <p class="text-slate-500 text-sm font-bold uppercase tracking-wider mb-2">Pedidos Pendientes</p>
+                            <p class="text-4xl font-black text-yellow-600">${PENDING_REQUESTS.length}</p>
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                        
-                        <!-- COLUMNA 1: SOLICITUDES PENDIENTES -->
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
-                            <div class="bg-indigo-600 dark:bg-indigo-500 px-6 py-5 text-white">
-                                <h2 class="text-xl font-black flex items-center"><i data-lucide="inbox" class="mr-2"></i> ${t('pendingTitle')}</h2>
-                                <p class="text-indigo-100 mt-1 text-xs">${t('pendingSub')}</p>
-                            </div>
-                            <div class="p-6 flex-grow bg-slate-50 dark:bg-slate-900/50">
-                `;
-                
-                if (PENDING_REQUESTS.length === 0) {
-                    html += `
-                                <div class="text-center py-10">
-                                    <i data-lucide="check-circle-2" class="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4"></i>
-                                    <p class="text-slate-500 dark:text-slate-400 font-medium">${t('noPending')}</p>
-                                </div>
-                    `;
-                } else {
-                    html += `<div class="space-y-4">`;
-                    PENDING_REQUESTS.forEach(req => {
-                        let itemsHtml = req.items.map((i, index) => {
-                            const dispName = ITEM_DICT[i.name]?.[currentLang] || i.name;
-                            return `
-                            <li class="flex items-center justify-between text-sm mb-2 last:mb-0">
-                                <span class="text-slate-700 dark:text-slate-300 font-medium">${dispName} <span class="text-xs text-slate-400 block sm:inline">(${t('reqBy')} ${i.qty})</span></span>
-                                <div class="flex items-center bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg overflow-hidden shadow-sm flex-shrink-0">
-                                    <input type="number" id="edit_qty_${req.id}_${index}" min="0" max="${i.qty}" value="${i.qty}" class="w-12 text-center py-1 bg-transparent focus:bg-indigo-50 dark:focus:bg-indigo-900/30 outline-none text-slate-800 dark:text-slate-100 font-bold text-sm">
-                                </div>
-                            </li>`;
-                        }).join('');
-                        
-                        html += `
-                                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm animate-fade-in-up">
-                                    <div class="flex justify-between items-start mb-3">
-                                        <div>
-                                            <h4 class="font-bold text-slate-800 dark:text-white">${req.leaderName}</h4>
-                                            <p class="text-xs text-slate-500 dark:text-slate-400">${req.date}</p>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="bar-chart-2" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('analyticsTitle')}</h3>
+                            <div class="space-y-4">
+                                ${INVENTORY.map(item => {
+                                    const percent = Math.min(100, Math.max(0, (item.stock / item.maxStock) * 100));
+                                    const barColor = percent < 20 ? 'bg-red-500' : percent < 50 ? 'bg-orange-400' : 'bg-emerald-500';
+                                    return `
+                                    <div>
+                                        <div class="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
+                                            <span>${ITEM_DICT[item.name]?.[currentLang] || item.name}</span>
+                                            <span>${item.stock} / ${item.maxStock}</span>
                                         </div>
-                                    </div>
-                                    <ul class="mb-4 text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-100 dark:border-slate-700">
-                                        ${itemsHtml}
-                                    </ul>
-                                    <div class="flex justify-between items-center border-t border-slate-100 dark:border-slate-700 pt-3 mt-2">
-                                        <button onclick="rejectRequest('${req.id}')" class="px-4 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-sm font-bold hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors">${t('reject')}</button>
-                                        <button onclick="processRequest('${req.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 transition-colors flex items-center shadow-md"><i data-lucide="check-square" class="w-4 h-4 mr-2"></i> ${t('dispatch')}</button>
-                                    </div>
-                                </div>
-                        `;
-                    });
-                    html += `</div>`;
-                }
-
-                html += `
+                                        <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
+                                            <div class="${barColor} h-2.5 rounded-full progress-bar" style="width: ${percent}%"></div>
+                                        </div>
+                                    </div>`;
+                                }).join('')}
                             </div>
                         </div>
 
-                        <!-- COLUMNA 2: STOCK GENERAL -->
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-0 overflow-hidden">
+                            <div class="p-6 border-b border-slate-100 dark:border-slate-700">
+                                <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center"><i data-lucide="history" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('auditTitle')}</h3>
+                            </div>
+                            <div class="overflow-auto max-h-[400px]">
+                                <table class="w-full text-left text-sm">
+                                    <thead class="bg-slate-50 dark:bg-slate-900/50 text-xs text-slate-500 uppercase font-bold">
+                                        <tr><th class="p-4">Producto</th><th class="p-4">${t('modBy')}</th><th class="p-4 text-center">Unidades</th></tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                                        ${[...INVENTORY].sort((a,b) => b.lastModDate.localeCompare(a.lastModDate)).map(item => `
+                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
+                                            <td class="p-4 font-medium text-slate-800 dark:text-slate-200">${item.name}</td>
+                                            <td class="p-4">
+                                                <span class="font-bold ${item.lastModBy === 'Joel Congache' ? 'text-purple-600' : 'text-blue-600'}">${item.lastModBy}</span>
+                                                <span class="block text-[10px] text-slate-400">${item.lastModDate}</span>
+                                            </td>
+                                            <td class="p-4 text-center font-black ${item.stock===0 ? 'text-red-500' : 'text-slate-700 dark:text-slate-300'}">${item.stock}</td>
+                                        </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    `;
+                } 
+                else {
+                    html += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">`;
+                    
+                    html += `
                         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
+                            <div class="bg-indigo-600 dark:bg-indigo-500 px-6 py-5 text-white">
+                                <h2 class="text-xl font-black flex items-center"><i data-lucide="inbox" class="mr-2"></i> ${t('pendingTitle')}</h2>
+                            </div>
+                            <div class="p-6 flex-grow bg-slate-50 dark:bg-slate-900/50">
+                    `;
+                    
+                    if (PENDING_REQUESTS.length === 0) {
+                        html += `<div class="text-center py-10"><i data-lucide="check-circle-2" class="w-16 h-16 text-slate-300 mx-auto mb-4"></i><p class="text-slate-500 font-medium">${t('noPending')}</p></div>`;
+                    } else {
+                        html += `<div class="space-y-4">`;
+                        PENDING_REQUESTS.forEach(req => {
+                            let itemsHtml = req.items.map((i, index) => `
+                                <li class="flex items-center justify-between text-sm mb-2 last:mb-0">
+                                    <span class="text-slate-700 dark:text-slate-300 font-medium">${i.name} <span class="text-xs text-slate-400 block sm:inline">(Pidió ${i.qty})</span></span>
+                                    <input type="number" id="edit_qty_${req.id}_${index}" min="0" max="${i.qty}" value="${i.qty}" class="w-12 text-center py-1 border rounded font-bold text-sm">
+                                </li>`).join('');
+                            html += `
+                                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 shadow-sm animate-fade-in-up">
+                                    <div class="mb-3"><h4 class="font-bold">${req.leaderName}</h4><p class="text-xs text-slate-500">${req.date}</p></div>
+                                    <ul class="mb-4 bg-slate-50 p-3 rounded-lg border">${itemsHtml}</ul>
+                                    <div class="flex justify-between items-center border-t pt-3">
+                                        <button onclick="rejectRequest('${req.id}')" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-bold">Rechazar</button>
+                                        <button onclick="processRequest('${req.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold flex items-center shadow-md"><i data-lucide="check-square" class="w-4 h-4 mr-2"></i> Despachar</button>
+                                    </div>
+                                </div>`;
+                        });
+                        html += `</div>`;
+                    }
+                    html += `</div></div>`; 
+                }
+
+                html += `
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col ${isBoss ? 'md:col-span-3 hidden' : ''}">
                             <div class="bg-slate-900 dark:bg-slate-950 px-6 py-5 text-white flex justify-between items-center">
-                                <div>
-                                    <h2 class="text-xl font-black flex items-center"><i data-lucide="package-search" class="mr-2 text-emerald-400"></i> ${t('stockTitle')}</h2>
-                                    <p class="text-slate-400 mt-1 text-xs">
-                                        ${currentAdminSession === "David Cajias" ? t('stockSubAdmin') : t('stockSubRead')}
-                                    </p>
-                                </div>
-                                ${currentAdminSession !== "David Cajias" ? `<div class="bg-slate-800 text-xs px-2 py-1 rounded flex items-center text-slate-400 border border-slate-700"><i data-lucide="lock" class="w-3 h-3 mr-1"></i> ${t('readOnly')}</div>` : ''}
+                                <div><h2 class="text-xl font-black flex items-center"><i data-lucide="package-search" class="mr-2 text-emerald-400"></i> ${t('stockTitle')}</h2></div>
                             </div>
                             <div class="p-6 overflow-x-auto">
                                 <table class="w-full text-left">
                                     <thead>
-                                        <tr class="text-[10px] font-black uppercase text-slate-400 border-b-2 border-slate-100 dark:border-slate-700">
-                                            <th class="pb-2">${t('product')}</th>
-                                            <th class="pb-2 text-center">${t('units')}</th>
+                                        <tr class="text-[10px] font-black uppercase text-slate-400 border-b-2">
+                                            <th class="pb-2">${t('product')}</th><th class="pb-2 text-center">${t('units')}</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                                    <tbody class="divide-y divide-slate-100">
                 `;
 
                 INVENTORY.forEach(item => {
                     const isZero = item.stock <= 0;
-                    const isSuperAdmin = currentAdminSession === "David Cajias";
-                    const dispName = ITEM_DICT[item.name]?.[currentLang] || item.name;
+                    const isLowStock = item.stock > 0 && item.stock <= 3;
                     
-                    const stockInputHtml = isSuperAdmin 
-                        ? `<input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', '${item.name}', this.value)" class="w-16 text-center text-sm font-bold border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 rounded px-1 py-1 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none transition-all ${isZero ? 'text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/20' : 'text-slate-700 dark:text-slate-200'}">`
-                        : `<div class="w-16 mx-auto text-center text-sm font-bold bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded px-1 py-1 cursor-not-allowed select-none ${isZero ? 'text-red-500 dark:text-red-400 bg-red-50/50 dark:bg-red-900/20' : 'text-slate-500 dark:text-slate-400'}">${item.stock}</div>`;
+                    const stockInputHtml = isTech 
+                        ? `<input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', this.value)" class="w-16 text-center text-sm font-bold border border-slate-300 rounded px-1 py-1 focus:border-indigo-500 outline-none transition-all ${isZero ? 'text-red-600 bg-red-50' : isLowStock ? 'text-orange-600 bg-orange-50' : 'text-slate-700'}">`
+                        : `<div class="w-16 mx-auto text-center text-sm font-bold bg-slate-50 border rounded px-1 py-1">${item.stock}</div>`;
+
+                    const auditHtml = item.lastModBy ? `<span class="block text-[10px] text-slate-400 font-normal mt-0.5">${t('lastMod')} ${item.lastModBy} (${item.lastModDate})</span>` : '';
 
                     html += `
-                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors">
-                                            <td class="py-3 flex items-center gap-2">
-                                                <span class="font-semibold text-slate-700 dark:text-slate-200 text-sm">${dispName}</span>
+                                        <tr class="hover:bg-slate-50 transition-colors">
+                                            <td class="py-3 flex items-center gap-3">
+                                                <div class="w-8 h-8 rounded flex items-center justify-center ${item.bg}"><i data-lucide="${item.icon}" class="w-4 h-4 ${item.color}"></i></div>
+                                                <div><span class="font-semibold text-slate-700 text-sm">${ITEM_DICT[item.name]?.[currentLang] || item.name}</span>${auditHtml}</div>
                                             </td>
-                                            <td class="py-3 text-center">
-                                                ${stockInputHtml}
-                                            </td>
-                                        </tr>
-                    `;
+                                            <td class="py-3 text-center align-middle">${stockInputHtml}</td>
+                                        </tr>`;
                 });
 
                 html += `
                                     </tbody>
                                 </table>
-                                ${currentAdminSession === "David Cajias" ? `
-                                <div class="mt-8 text-center text-sm text-slate-500 dark:text-slate-400 font-medium bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
-                                    <i data-lucide="info" class="inline w-4 h-4 mr-1 text-indigo-500 dark:text-indigo-400"></i> ${t('saveHelp')}
-                                </div>
-                                ` : ''}
                             </div>
                         </div>
-
-                    </div>
+                    ${!isBoss ? '</div>' : ''}
                 </div>`;
             }
             else if (currentView === 'checkout') {
@@ -761,45 +674,33 @@
 
                 html += `
                 <div class="max-w-2xl mx-auto space-y-6 animate-fade-in-up pb-10">
-                    <button onclick="goToCatalog()" class="flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium mb-4">
-                        <i data-lucide="arrow-left" class="w-5 h-5 mr-1"></i> ${t('backCatalog')}
-                    </button>
+                    <button onclick="goToCatalog()" class="flex items-center text-indigo-600 hover:text-indigo-800 font-medium mb-4"><i data-lucide="arrow-left" class="w-5 h-5 mr-1"></i> ${t('backCatalog')}</button>
                     <h2 class="text-3xl font-bold text-slate-800 dark:text-white">${t('checkoutTitle')}</h2>
                     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8">
                         <form onsubmit="processOrder(event)">
                             <div class="mb-8">
                                 <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">${t('leaderName')}</label>
-                                <select id="leaderName" required autofocus class="w-full border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none text-lg transition-all cursor-pointer">
+                                <select id="leaderName" required autofocus class="w-full border-2 border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none text-lg transition-all cursor-pointer">
                                     <option value="" disabled selected>${t('selectName')}</option>
                                     ${opcionesLideres}
                                 </select>
                             </div>
-                            
-                            <h3 class="font-bold text-slate-700 dark:text-slate-300 mb-4 border-b-2 border-slate-100 dark:border-slate-700 pb-2">${t('yourOrder')}</h3>
-                            <ul class="divide-y divide-slate-100 dark:divide-slate-700 mb-8">
+                            <h3 class="font-bold text-slate-700 dark:text-slate-300 mb-4 border-b-2 border-slate-100 pb-2">${t('yourOrder')}</h3>
+                            <ul class="divide-y divide-slate-100 mb-8">
                 `;
                 
                 for (const [id, qty] of Object.entries(cart)) {
                     const item = INVENTORY.find(i => i.id === id);
-                    const dispName = ITEM_DICT[item.name]?.[currentLang] || item.name;
                     html += `
                         <li class="py-4 flex items-center justify-between">
-                            <div class="flex items-center space-x-4">
-                                <div class="w-12 h-12 rounded-lg flex items-center justify-center ${item.bg}">
-                                    <i data-lucide="${item.icon}" class="${item.color}"></i>
-                                </div>
-                                <p class="font-bold text-slate-800 dark:text-slate-200 text-lg">${dispName}</p>
-                            </div>
-                            <span class="font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-2 rounded-lg text-lg border border-indigo-100 dark:border-indigo-800">x${qty}</span>
-                        </li>
-                    `;
+                            <div class="flex items-center space-x-4"><div class="w-12 h-12 rounded-lg flex items-center justify-center ${item.bg}"><i data-lucide="${item.icon}" class="${item.color}"></i></div><p class="font-bold text-slate-800 dark:text-slate-200 text-lg">${ITEM_DICT[item.name]?.[currentLang] || item.name}</p></div>
+                            <span class="font-bold text-indigo-700 bg-indigo-50 px-4 py-2 rounded-lg text-lg border border-indigo-100">x${qty}</span>
+                        </li>`;
                 }
 
                 html += `
                             </ul>
-                            <button type="submit" class="w-full py-4 text-lg rounded-xl bg-green-600 text-white hover:bg-green-700 shadow-md flex items-center justify-center font-black transition-all">
-                                <i data-lucide="send" class="w-6 h-6 mr-2"></i> ${t('sendOrder')}
-                            </button>
+                            <button type="submit" class="w-full py-4 text-lg rounded-xl bg-green-600 text-white hover:bg-green-700 shadow-md flex items-center justify-center font-black transition-all"><i data-lucide="send" class="w-6 h-6 mr-2"></i> ${t('sendOrder')}</button>
                             <p class="text-center text-xs text-slate-400 mt-4">${t('checkoutNote')}</p>
                         </form>
                     </div>
@@ -808,28 +709,19 @@
             else if (currentView === 'success') {
                 floatingCart.style.display = 'none';
                 html += `
-                <div class="max-w-md mx-auto mt-20 text-center animate-fade-in-up bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
-                    <div class="flex justify-center mb-6">
-                        <div class="bg-emerald-100 dark:bg-emerald-900/30 p-6 rounded-full text-emerald-600 dark:text-emerald-400">
-                            <i data-lucide="check-circle" style="width: 64px; height: 64px;"></i>
-                        </div>
-                    </div>
+                <div class="max-w-md mx-auto mt-20 text-center animate-fade-in-up bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200">
+                    <div class="flex justify-center mb-6"><div class="bg-emerald-100 p-6 rounded-full text-emerald-600"><i data-lucide="check-circle" style="width: 64px; height: 64px;"></i></div></div>
                     <h2 class="text-3xl font-bold text-slate-800 dark:text-white mb-4">${t('successTitle')}</h2>
-                    <p class="text-slate-600 dark:text-slate-300 mb-8 text-lg">
-                        ${t('successMsg1')}
-                    </p>
-                    <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">${t('successMsg2')}</p>
-                    <button onclick="goToCatalog()" class="w-full py-3 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium transition-all border border-slate-200 dark:border-slate-800">
-                        ${t('backStart')}
-                    </button>
+                    <p class="text-slate-600 dark:text-slate-300 mb-8 text-lg">${t('successMsg1')}</p>
+                    <p class="text-slate-500 text-sm mb-6">${t('successMsg2')}</p>
+                    <button onclick="goToCatalog()" class="w-full py-3 rounded-lg bg-slate-100 text-slate-700 font-medium transition-all">${t('backStart')}</button>
                 </div>`;
             }
 
             container.innerHTML = html;
-            updateThemeUI(); // Asegura que los íconos se rendericen y tengan la forma correcta
+            updateThemeUI(); 
         }
 
-        // Iniciar
         loadData();
     </script>
 </body>
