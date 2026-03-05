@@ -25,7 +25,6 @@
             .print-full-width { width: 100% !important; max-width: 100% !important; }
             .shadow-xl, .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
         }
-        /* Barra de progreso CSS */
         .progress-bar { transition: width 1s ease-in-out; }
     </style>
 </head>
@@ -100,7 +99,11 @@
                 analyticsTitle: "Estado de Abastecimiento", auditTitle: "Auditoría Histórica (Trazabilidad)",
                 minStock: "Stock Mínimo", action: "Acción", qty: "Cant.", autoAlerts: "Alertas Automáticas",
                 topConsumed: "Periféricos más utilizados (Top 4)", monthlyConsumption: "Consumo Mensual (Estimado)",
-                restockNeeded: "Reposición necesaria urgente", invStatus: "Estado de Inventario", optimal: "Óptimo"
+                restockNeeded: "Reposición necesaria urgente", invStatus: "Estado de Inventario", optimal: "Óptimo",
+                newHireBtn: "Dotación Nuevo Ingreso", newHireTitle: "Entregar Kit a Nuevo Operador",
+                newHireNameLabel: "Nombre del Nuevo Operador", newHireStandard: "Kit Estándar (Por defecto)",
+                newHireOptional: "Equipos Opcionales / Variables", newHireHeadphones: "Tipo de Audífonos (Según Laptop)",
+                newHireKeyboard: "Entregar Teclado Externo (Solo si la laptop está dañada)", registerKit: "Registrar Entrega de Kit"
             },
             en: {
                 headerTitle: "SICP | IT Requests", admin: "Admin", cartBtn: "Review Order",
@@ -128,7 +131,11 @@
                 analyticsTitle: "Supply Status", auditTitle: "Historical Audit (Traceability)",
                 minStock: "Min Stock", action: "Action", qty: "Qty", autoAlerts: "Auto Alerts",
                 topConsumed: "Most Used Peripherals (Top 4)", monthlyConsumption: "Monthly Consumption (Est)",
-                restockNeeded: "Urgent restocking needed", invStatus: "Inventory Status", optimal: "Optimal"
+                restockNeeded: "Urgent restocking needed", invStatus: "Inventory Status", optimal: "Optimal",
+                newHireBtn: "New Hire Kit", newHireTitle: "Deliver Kit to New Operator",
+                newHireNameLabel: "New Operator's Name", newHireStandard: "Standard Kit (Default)",
+                newHireOptional: "Optional / Variable Equipment", newHireHeadphones: "Headphone Type (Depends on Laptop)",
+                newHireKeyboard: "Deliver External Keyboard (Only if laptop is damaged)", registerKit: "Register Kit Delivery"
             },
             zh: {
                 headerTitle: "SICP | IT 需求", admin: "管理", cartBtn: "审查订单",
@@ -156,7 +163,11 @@
                 analyticsTitle: "供应状态", auditTitle: "历史审计（可追溯性）",
                 minStock: "最低库存", action: "行动", qty: "数量", autoAlerts: "自动警报",
                 topConsumed: "最常用的外设（前4名）", monthlyConsumption: "月度消耗（估计）",
-                restockNeeded: "急需补货", invStatus: "库存状态", optimal: "最佳"
+                restockNeeded: "急需补货", invStatus: "库存状态", optimal: "最佳",
+                newHireBtn: "新员工套件", newHireTitle: "向新操作员交付套件",
+                newHireNameLabel: "新操作员姓名", newHireStandard: "标准套件（默认）",
+                newHireOptional: "可选 / 可变设备", newHireHeadphones: "耳机类型（取决于笔记本电脑）",
+                newHireKeyboard: "提供外接键盘（仅当笔记本电脑损坏时）", registerKit: "注册套件交付"
             }
         };
 
@@ -196,7 +207,8 @@
             currentLang = lang; localStorage.setItem('sicp_lang', lang); render();
         }
 
-        const EXCEL_API_URL = "https://script.google.com/macros/s/AKfycbyufsogzX2J-Pz43hTm8OX2udruHvWJcf-jm3BiQhPNddAG9ucpl_PammVnVKpWvrkJTg/exec"; 
+        // 👇 PEGA AQUÍ TU URL NUEVA 👇
+        const EXCEL_API_URL = "https://script.google.com/macros/s/AKfycbx7fWp1WzVMgI34Sr-gervLcSs0i87jjbldlhR9cMnN13x1TQxISmdhQwNvmPIiWvOzsw/exec"; 
         
         const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfFxX65M8NgVPHB09LqC-mIRFi5_owL5G73EszBKKQNZlVVrQ/formResponse";
         const ENTRY_NAME = "entry.519287369"; 
@@ -238,40 +250,13 @@
         let currentView = 'catalog'; 
         let isSyncing = false;
         let backgroundSyncTimer = null;
+        let isKitModalOpen = false;
 
-        // --- MOTORES DE AUDITORÍA Y ESTADÍSTICA LOCAL ---
         let AUDIT_LOG = JSON.parse(localStorage.getItem('sicp_audit_log')) || [];
         let CONSUMPTION = JSON.parse(localStorage.getItem('sicp_consumption')) || {};
 
         if (Object.keys(CONSUMPTION).length === 0) {
             CONSUMPTION = { 'Mouse': 120, 'Audífonos simples': 95, 'Teclado': 80, 'Cargador de laptop': 50 };
-            localStorage.setItem('sicp_consumption', JSON.stringify(CONSUMPTION));
-        }
-        if (AUDIT_LOG.length === 0) {
-            AUDIT_LOG = [
-                { date: "04/03/2026 14:30:00", user: "David Cajias", action: "Despacho", product: "Mouse", qty: "-5" },
-                { date: "04/03/2026 11:15:00", user: "Joel Congache", action: "Ajuste Manual", product: "Cámara", qty: "+3" },
-                { date: "04/03/2026 09:10:00", user: "David Cajias", action: "Despacho", product: "Cable VGA", qty: "-2" }
-            ];
-            localStorage.setItem('sicp_audit_log', JSON.stringify(AUDIT_LOG));
-        }
-
-        function logAuditAction(action, product, qty) {
-            const log = {
-                date: new Date().toLocaleString('es-EC', { hour12: false }),
-                user: currentAdminSession,
-                action: action,
-                product: product,
-                qty: qty > 0 ? `+${qty}` : qty
-            };
-            AUDIT_LOG.unshift(log);
-            if(AUDIT_LOG.length > 200) AUDIT_LOG.pop(); 
-            localStorage.setItem('sicp_audit_log', JSON.stringify(AUDIT_LOG));
-        }
-
-        function logConsumption(product, qty) {
-            if (!CONSUMPTION[product]) CONSUMPTION[product] = 0;
-            CONSUMPTION[product] += qty;
             localStorage.setItem('sicp_consumption', JSON.stringify(CONSUMPTION));
         }
 
@@ -306,6 +291,15 @@
                     });
                 }
                 if (data.pending) PENDING_REQUESTS = data.pending;
+                if (data.audit) {
+                    AUDIT_LOG = data.audit;
+                    localStorage.setItem('sicp_audit_log', JSON.stringify(AUDIT_LOG));
+                }
+                if (data.consumption) {
+                    // Combinar datos dummy visuales con reales del servidor para el demo
+                    Object.assign(CONSUMPTION, data.consumption);
+                    localStorage.setItem('sicp_consumption', JSON.stringify(CONSUMPTION));
+                }
             } catch(e) {} finally {
                 isSyncing = false;
                 render();
@@ -335,11 +329,38 @@
                             }
                         });
                     }
+                    if (data.audit && JSON.stringify(AUDIT_LOG) !== JSON.stringify(data.audit)) {
+                        AUDIT_LOG = data.audit; hasChanges = true;
+                    }
+                    
                     if (hasChanges && document.activeElement.tagName !== 'INPUT') render();
                 } catch(e) {}
             }, 10000); 
         }
         function stopBackgroundSync() { if (backgroundSyncTimer) { clearInterval(backgroundSyncTimer); backgroundSyncTimer = null; } }
+
+        // --- LAS FUNCIONES ASÍNCRONAS ASEGURAN QUE EL EXCEL GUARDE TODO ORDENADO ---
+        async function logAuditAction(action, product, qty) {
+            const dateStr = new Date().toLocaleString('es-EC', { hour12: false });
+            const qtyStr = qty > 0 ? `+${qty}` : qty;
+            const ip = currentAdminSession === 'David Cajias' ? '192.168.1.22' : currentAdminSession === 'Joel Congache' ? '192.168.1.18' : '192.168.1.10';
+            
+            AUDIT_LOG.unshift({ date: dateStr, user: currentAdminSession, action: action, product: product, qty: qtyStr, ip: ip });
+            if(AUDIT_LOG.length > 200) AUDIT_LOG.pop();
+            
+            if (EXCEL_API_URL) {
+                await fetch(`${EXCEL_API_URL}?action=log_audit&date=${encodeURIComponent(dateStr)}&user=${encodeURIComponent(currentAdminSession)}&actionName=${encodeURIComponent(action)}&product=${encodeURIComponent(product)}&qty=${encodeURIComponent(qtyStr)}&ip=${encodeURIComponent(ip)}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
+            }
+        }
+
+        async function logConsumption(product, qty) {
+            if (!CONSUMPTION[product]) CONSUMPTION[product] = 0;
+            CONSUMPTION[product] += qty;
+            
+            if (EXCEL_API_URL) {
+                await fetch(`${EXCEL_API_URL}?action=log_consumption&product=${encodeURIComponent(product)}&qty=${qty}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
+            }
+        }
 
         async function adminUpdateStock(id, newStock) {
             const item = INVENTORY.find(i => i.id === id);
@@ -349,11 +370,12 @@
             item.lastModDate = new Date().toLocaleTimeString();
             
             const diff = item.stock - oldStock;
-            if(diff !== 0) {
-                logAuditAction('Ajuste Manual', item.name, diff);
-            }
-
+            
             render(); 
+
+            if (diff !== 0) {
+                await logAuditAction('Ajuste Manual', item.name, diff);
+            }
 
             if (!EXCEL_API_URL) return;
             try {
@@ -366,7 +388,6 @@
             const request = PENDING_REQUESTS.find(r => r.id === reqId);
             if (!request) return;
             
-            let updates = [];
             let finalItemsText = "";
             const nowStr = new Date().toLocaleTimeString();
             
@@ -378,43 +399,104 @@
                  if (approvedQty > 0) {
                      const invItem = INVENTORY.find(i => i.id === itemReq.id);
                      if (invItem) {
-                         if (approvedQty > invItem.stock) { alert(`Stock insuficiente`); return; }
+                         if (approvedQty > invItem.stock) { alert(`Stock insuficiente de ${itemReq.name}`); return; }
+                         
+                         // Actualizamos UI
                          invItem.stock = Math.max(0, invItem.stock - approvedQty);
                          invItem.lastModBy = currentAdminSession;
                          invItem.lastModDate = nowStr;
-                         updates.push({id: invItem.id, stock: invItem.stock, user: currentAdminSession, date: nowStr});
                          
-                         logAuditAction('Despacho', itemReq.name, -approvedQty);
-                         logConsumption(itemReq.name, approvedQty);
+                         // Esperamos a que la Base de datos guarde 1 por 1
+                         await logAuditAction('Despacho', itemReq.name, -approvedQty);
+                         await logConsumption(itemReq.name, approvedQty);
+                         await fetch(`${EXCEL_API_URL}?action=update&id=${invItem.id}&stock=${invItem.stock}&user=${encodeURIComponent(currentAdminSession)}&date=${encodeURIComponent(nowStr)}&t=${new Date().getTime()}`, { redirect: 'follow' });
 
                          finalItemsText += approvedQty !== itemReq.qty ? `${approvedQty}x ${itemReq.name} (Pidió ${itemReq.qty}), ` : `${approvedQty}x ${itemReq.name}, `;
                      }
                  }
             }
             if (finalItemsText === "") return;
+            
             PENDING_REQUESTS = PENDING_REQUESTS.filter(r => r.id !== reqId);
             submitToGoogleForms(request.leaderName, finalItemsText, `PROCESADA (${currentAdminSession})`);
             render(); 
             
             if (EXCEL_API_URL) {
-                try {
-                    await Promise.all(updates.map(u => fetch(`${EXCEL_API_URL}?action=update&id=${u.id}&stock=${u.stock}&user=${encodeURIComponent(u.user)}&date=${encodeURIComponent(u.date)}&t=${new Date().getTime()}`, { redirect: 'follow' })));
-                    await fetch(`${EXCEL_API_URL}?action=remove_pending&reqId=${reqId}&t=${new Date().getTime()}`, { redirect: 'follow' });
-                } catch(e) {}
+                await fetch(`${EXCEL_API_URL}?action=remove_pending&reqId=${reqId}&t=${new Date().getTime()}`, { redirect: 'follow' });
             }
         }
+
+        function openKitModal() { isKitModalOpen = true; render(); }
+        function closeKitModal() { isKitModalOpen = false; render(); }
+
+        // --- PROCESADOR DE DOTACIÓN RÁPIDA (CON ESPERA SECUENCIAL PARA EXCEL) ---
+        async function processNewHireKit(event) {
+            event.preventDefault();
+            const empName = document.getElementById('kitEmpName').value;
+            const incMouse = document.getElementById('kitMouse').checked;
+            const incCharger = document.getElementById('kitCharger').checked;
+            const incNetCable = document.getElementById('kitNetCable').checked;
+            const incKeyboard = document.getElementById('kitKeyboard').checked;
+            const headphonesType = document.getElementById('kitHeadphones').value; 
+
+            if(!empName) return;
+
+            let itemsToDeduct = [];
+            if(incMouse) itemsToDeduct.push({id: '1', name: 'Mouse'});
+            if(incCharger) itemsToDeduct.push({id: '9', name: 'Cargador de laptop'});
+            if(incNetCable) itemsToDeduct.push({id: '5', name: 'Cable de Red'});
+            if(incKeyboard) itemsToDeduct.push({id: '2', name: 'Teclado'});
+            if(headphonesType === 'simples') itemsToDeduct.push({id: '3', name: 'Audífonos simples'});
+            if(headphonesType === 'dobles') itemsToDeduct.push({id: '4', name: 'Audífonos dobles'});
+
+            // Verificamos si hay stock de todo antes de hacer nada
+            for(let itemReq of itemsToDeduct) {
+                const invItem = INVENTORY.find(i => i.id === itemReq.id);
+                if(invItem.stock < 1) {
+                    alert(`❌ No hay stock suficiente de: ${itemReq.name}`);
+                    return;
+                }
+            }
+
+            const nowStr = new Date().toLocaleTimeString();
+            showToast("📦 Guardando dotación en Excel... No cierres la ventana.", "info");
+            
+            isKitModalOpen = false;
+            render();
+
+            // Descontamos uno por uno y esperamos a Excel para no chocar
+            for(let itemReq of itemsToDeduct) {
+                const invItem = INVENTORY.find(i => i.id === itemReq.id);
+                invItem.stock -= 1;
+                invItem.lastModBy = currentAdminSession;
+                invItem.lastModDate = nowStr;
+
+                await logAuditAction(`DOTACIÓN A: ${empName.toUpperCase()}`, itemReq.name, -1);
+                await logConsumption(itemReq.name, 1);
+                
+                if (EXCEL_API_URL) {
+                    await fetch(`${EXCEL_API_URL}?action=update&id=${invItem.id}&stock=${invItem.stock}&user=${encodeURIComponent(currentAdminSession)}&date=${encodeURIComponent(nowStr)}&t=${new Date().getTime()}`, { redirect: 'follow' });
+                }
+            }
+
+            render();
+            showToast("✅ Kit registrado y guardado en Auditoría", "success");
+        }
         
-        function rejectRequest(reqId) {
+        async function rejectRequest(reqId) {
             if (confirm("¿Rechazar pedido?")) {
                 const request = PENDING_REQUESTS.find(r => r.id === reqId);
                 let originalItemsText = request.items.map(i => `${i.qty}x ${i.name}`).join(', ');
                 
-                logAuditAction('Rechazo', 'Solicitud Cancelada', 0);
-                
+                await logAuditAction('Rechazo', 'Solicitud Cancelada', 0);
                 submitToGoogleForms(request.leaderName, originalItemsText, `RECHAZADA (${currentAdminSession})`);
+                
                 PENDING_REQUESTS = PENDING_REQUESTS.filter(r => r.id !== reqId);
                 render();
-                if (EXCEL_API_URL) fetch(`${EXCEL_API_URL}?action=remove_pending&reqId=${reqId}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
+                
+                if (EXCEL_API_URL) {
+                    await fetch(`${EXCEL_API_URL}?action=remove_pending&reqId=${reqId}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
+                }
             }
         }
 
@@ -619,15 +701,13 @@
                         </div>
                     </div>
                     
-                    <!-- AQUI CORREGIMOS EL ESPACIO VACÍO: 3 COLUMNAS -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                         
-                        <!-- ESTADÍSTICAS: Top Periféricos (Col 1) -->
                         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
                             <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="trending-up" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('topConsumed')}</h3>
                             <div class="space-y-5 mt-6">
                                 ${sortedConsumption.map(([prod, qty], index) => {
-                                    const maxVal = sortedConsumption[0][1] || 1;
+                                    const maxVal = sortedConsumption[0] ? sortedConsumption[0][1] || 1 : 1;
                                     const percent = (qty / maxVal) * 100;
                                     const colors = ['bg-indigo-500', 'bg-blue-500', 'bg-emerald-500', 'bg-purple-500'];
                                     return `
@@ -644,7 +724,6 @@
                             </div>
                         </div>
 
-                        <!-- ESTADÍSTICAS: Consumo Mensual (Col 2) -->
                         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col justify-end h-[300px]">
                             <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="bar-chart-3" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('monthlyConsumption')}</h3>
                             <div class="flex items-end justify-between px-2 flex-grow mt-4 border-b border-slate-200 dark:border-slate-600 pb-2">
@@ -655,7 +734,6 @@
                             </div>
                         </div>
 
-                        <!-- ESTADÍSTICAS: Estado General (Col 3) -->
                         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col h-[300px]">
                             <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="layers" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('invStatus')}</h3>
                             <div class="space-y-4 mt-4 flex-grow flex flex-col justify-center">
@@ -682,7 +760,6 @@
                         </div>
                     </div>
 
-                    <!-- AUDITORÍA COMPLETA (TRAZABILIDAD) -->
                     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mb-8">
                         <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
                             <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center"><i data-lucide="history" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('auditTitle')}</h3>
@@ -703,7 +780,6 @@
                                 <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                                     ${AUDIT_LOG.map((log, i) => {
                                         const isOut = log.qty.toString().includes('-');
-                                        const ip = log.user === 'David Cajias' ? '192.168.1.22' : log.user === 'Joel Congache' ? '192.168.1.18' : '192.168.1.10';
                                         return `
                                         <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                             <td class="p-4 font-mono text-xs text-slate-500 dark:text-slate-400">${log.date}</td>
@@ -713,7 +789,7 @@
                                             </td>
                                             <td class="p-4 font-medium text-slate-800 dark:text-slate-200">${log.product}</td>
                                             <td class="p-4 text-center font-black text-lg ${isOut ? 'text-red-500 dark:text-red-400' : 'text-emerald-500 dark:text-emerald-400'}">${log.qty}</td>
-                                            <td class="p-4 text-right font-mono text-xs text-slate-400 dark:text-slate-500">${ip}</td>
+                                            <td class="p-4 text-right font-mono text-xs text-slate-400 dark:text-slate-500">${log.ip}</td>
                                         </tr>
                                         `;
                                     }).join('')}
@@ -724,9 +800,19 @@
                     `;
                 } 
                 else {
-                    // VISTA TÉCNICOS (Solo solicitudes de momento para evitar huecos en Grid de 2 col)
+                    
                     html += `
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col mb-8">
+                    <div class="flex justify-end mb-6 no-print">
+                        <button onclick="openKitModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-black flex items-center shadow-lg shadow-indigo-500/30 transition-all transform hover:-translate-y-0.5">
+                            <i data-lucide="user-plus" class="w-5 h-5 mr-2"></i> ${t('newHireBtn')}
+                        </button>
+                    </div>
+                    `;
+
+                    html += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">`;
+                    
+                    html += `
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
                             <div class="bg-indigo-600 dark:bg-indigo-500 px-6 py-5 text-white">
                                 <h2 class="text-xl font-black flex items-center"><i data-lucide="inbox" class="mr-2"></i> ${t('pendingTitle')}</h2>
                             </div>
@@ -736,7 +822,7 @@
                     if (PENDING_REQUESTS.length === 0) {
                         html += `<div class="text-center py-10"><i data-lucide="check-circle-2" class="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4"></i><p class="text-slate-500 dark:text-slate-400 font-medium">${t('noPending')}</p></div>`;
                     } else {
-                        html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-6">`; // Mejoramos la lista de solicitudes a grid interno
+                        html += `<div class="grid grid-cols-1 gap-6">`; 
                         PENDING_REQUESTS.forEach(req => {
                             let itemsHtml = req.items.map((i, index) => `
                                 <li class="flex items-center justify-between text-sm mb-2 last:mb-0">
@@ -756,12 +842,8 @@
                         html += `</div>`;
                     }
                     html += `</div></div>`; 
-                }
 
-                // ==========================================
-                // 📦 TABLA DE INVENTARIO (Visible para Todos)
-                // ==========================================
-                html += `
+                    html += `
                         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
                             <div class="bg-slate-900 dark:bg-slate-950 px-6 py-5 text-white flex justify-between items-center">
                                 <div><h2 class="text-xl font-black flex items-center"><i data-lucide="package-search" class="mr-2 text-emerald-400"></i> ${t('stockTitle')}</h2></div>
@@ -776,45 +858,42 @@
                                         </tr>
                                     </thead>
                                     <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
-                `;
+                    `;
 
-                INVENTORY.forEach(item => {
-                    const isZero = item.stock <= 0;
-                    const isLowStock = item.stock > 0 && item.stock <= item.minStock;
-                    
-                    let colorClasses = '';
-                    if (isZero) colorClasses = 'border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30';
-                    else if (isLowStock) colorClasses = 'border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30';
-                    else colorClasses = 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800';
+                    INVENTORY.forEach(item => {
+                        const isZero = item.stock <= 0;
+                        const isLowStock = item.stock > 0 && item.stock <= item.minStock;
+                        
+                        let colorClasses = '';
+                        if (isZero) colorClasses = 'border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30';
+                        else if (isLowStock) colorClasses = 'border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30';
+                        else colorClasses = 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800';
 
-                    let readOnlyColorClasses = '';
-                    if (isZero) readOnlyColorClasses = 'border-red-200 dark:border-red-900/50 text-red-500 dark:text-red-400 bg-red-50/50 dark:bg-red-900/20';
-                    else if (isLowStock) readOnlyColorClasses = 'border-orange-200 dark:border-orange-900/50 text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-900/20';
-                    else readOnlyColorClasses = 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400';
+                        const stockInputHtml = `<input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', this.value)" class="w-16 text-center text-sm font-bold border rounded px-1 py-1 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 outline-none transition-all ${colorClasses}">`;
 
-                    const stockInputHtml = isTech 
-                        ? `<input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', this.value)" class="w-16 text-center text-sm font-bold border rounded px-1 py-1 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 outline-none transition-all ${colorClasses}">`
-                        : `<div class="w-16 mx-auto text-center text-sm font-bold border rounded px-1 py-1 ${readOnlyColorClasses}">${item.stock}</div>`;
+                        const auditHtml = item.lastModBy ? `<span class="block text-[10px] text-slate-400 dark:text-slate-500 font-normal mt-0.5">${t('lastMod')} ${item.lastModBy} (${item.lastModDate})</span>` : '';
 
-                    const auditHtml = item.lastModBy ? `<span class="block text-[10px] text-slate-400 dark:text-slate-500 font-normal mt-0.5">${t('lastMod')} ${item.lastModBy} (${item.lastModDate})</span>` : '';
+                        html += `
+                                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                                <td class="py-3 flex items-center gap-3">
+                                                    <div class="w-8 h-8 rounded flex items-center justify-center ${item.bg}"><i data-lucide="${item.icon}" class="w-4 h-4 ${item.color}"></i></div>
+                                                    <div><span class="font-semibold text-slate-700 dark:text-slate-200 text-sm">${ITEM_DICT[item.name]?.[currentLang] || item.name}</span>${auditHtml}</div>
+                                                </td>
+                                                <td class="py-3 text-center align-middle font-mono text-xs text-slate-400 dark:text-slate-500">${item.minStock}</td>
+                                                <td class="py-3 text-center align-middle">${stockInputHtml}</td>
+                                            </tr>`;
+                    });
 
                     html += `
-                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                            <td class="py-3 flex items-center gap-3">
-                                                <div class="w-8 h-8 rounded flex items-center justify-center ${item.bg}"><i data-lucide="${item.icon}" class="w-4 h-4 ${item.color}"></i></div>
-                                                <div><span class="font-semibold text-slate-700 dark:text-slate-200 text-sm">${ITEM_DICT[item.name]?.[currentLang] || item.name}</span>${auditHtml}</div>
-                                            </td>
-                                            <td class="py-3 text-center align-middle font-mono text-xs text-slate-400 dark:text-slate-500">${item.minStock}</td>
-                                            <td class="py-3 text-center align-middle">${stockInputHtml}</td>
-                                        </tr>`;
-                });
-
-                html += `
-                                    </tbody>
-                                </table>
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
                         </div>
-                </div>`;
+                    `;
+                }
+
+                html += `</div>`;
             }
             else if (currentView === 'checkout') {
                 floatingCart.style.display = 'none';
@@ -864,6 +943,60 @@
                     <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">${t('successMsg2')}</p>
                     <button onclick="goToCatalog()" class="w-full py-3 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium transition-all border border-slate-200 dark:border-slate-800">${t('backStart')}</button>
                 </div>`;
+            }
+
+            if (isKitModalOpen) {
+                html += `
+                <div class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center p-4 backdrop-blur-sm no-print animate-fade-in-up">
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-lg shadow-2xl overflow-hidden flex flex-col border border-slate-200 dark:border-slate-700">
+                        <div class="px-6 py-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center bg-slate-50 dark:bg-slate-900/50">
+                            <h3 class="font-black text-slate-800 dark:text-white flex items-center"><i data-lucide="user-plus" class="mr-2 text-indigo-500"></i> ${t('newHireTitle')}</h3>
+                            <button onclick="closeKitModal()" class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>
+                        </div>
+                        <form onsubmit="processNewHireKit(event)" class="p-6 space-y-6">
+                            <div>
+                                <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">${t('newHireNameLabel')}</label>
+                                <input type="text" id="kitEmpName" required placeholder="Ej. Juan Pérez" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-white rounded-lg px-4 py-2.5 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 outline-none transition-all">
+                            </div>
+                            
+                            <div class="bg-indigo-50 dark:bg-indigo-900/20 p-4 rounded-xl border border-indigo-100 dark:border-indigo-800/50">
+                                <h4 class="text-xs font-black text-indigo-800 dark:text-indigo-300 uppercase tracking-wider mb-3">${t('newHireStandard')}</h4>
+                                <div class="grid grid-cols-3 gap-2">
+                                    <label class="flex items-center space-x-2 text-sm font-medium text-slate-700 dark:text-slate-300"><input type="checkbox" id="kitMouse" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-600"> <span>Mouse</span></label>
+                                    <label class="flex items-center space-x-2 text-sm font-medium text-slate-700 dark:text-slate-300"><input type="checkbox" id="kitCharger" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-600"> <span>Cargador</span></label>
+                                    <label class="flex items-center space-x-2 text-sm font-medium text-slate-700 dark:text-slate-300"><input type="checkbox" id="kitNetCable" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-600"> <span>Cable Red</span></label>
+                                </div>
+                            </div>
+
+                            <div class="bg-slate-50 dark:bg-slate-900/50 p-4 rounded-xl border border-slate-200 dark:border-slate-700">
+                                <h4 class="text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">${t('newHireOptional')}</h4>
+                                
+                                <div class="mb-4">
+                                    <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">${t('newHireHeadphones')}</label>
+                                    <select id="kitHeadphones" class="w-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-white rounded-lg px-3 py-2 outline-none focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 cursor-pointer transition-all">
+                                        <option value="simples">Audífonos Simples (1 Entrada)</option>
+                                        <option value="dobles">Audífonos Dobles (2 Entradas)</option>
+                                        <option value="none">No Entregar Audífonos</option>
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label class="flex items-center space-x-3 text-sm font-bold text-slate-700 dark:text-slate-300 p-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                                        <input type="checkbox" id="kitKeyboard" class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300 dark:border-slate-600"> 
+                                        <span>${t('newHireKeyboard')}</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <div class="pt-2">
+                                <button type="submit" class="w-full py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-black shadow-md flex items-center justify-center transition-colors">
+                                    <i data-lucide="package-check" class="w-5 h-5 mr-2"></i> ${t('registerKit')}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                `;
             }
 
             container.innerHTML = html;
