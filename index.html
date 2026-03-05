@@ -26,7 +26,7 @@
             .shadow-xl, .shadow-sm { box-shadow: none !important; border: 1px solid #e2e8f0 !important; }
         }
         /* Barra de progreso CSS */
-        .progress-bar { transition: width 0.5s ease-in-out; }
+        .progress-bar { transition: width 1s ease-in-out; }
     </style>
 </head>
 <body class="bg-slate-50 dark:bg-slate-900 font-sans text-slate-800 dark:text-slate-200 pb-24 flex flex-col min-h-screen transition-colors duration-300">
@@ -97,7 +97,10 @@
                 bossDashboard: "Analíticas Gerenciales", printReport: "Imprimir PDF",
                 totalItems: "Total Inventario", criticalStock: "Agotándose", outStock: "Sin Stock",
                 criticalTableTitle: "Alerta de Reabastecimiento Crítico", modBy: "Audit. Técnico", modDate: "Fecha",
-                analyticsTitle: "Estado de Abastecimiento", auditTitle: "Auditoría de Movimientos Recientes"
+                analyticsTitle: "Estado de Abastecimiento", auditTitle: "Auditoría Histórica (Trazabilidad)",
+                minStock: "Stock Mínimo", action: "Acción", qty: "Cant.", autoAlerts: "Alertas Automáticas",
+                topConsumed: "Periféricos más utilizados (Top 4)", monthlyConsumption: "Consumo Mensual (Estimado)",
+                restockNeeded: "Reposición necesaria urgente", invStatus: "Estado de Inventario", optimal: "Óptimo"
             },
             en: {
                 headerTitle: "SICP | IT Requests", admin: "Admin", cartBtn: "Review Order",
@@ -122,7 +125,10 @@
                 bossDashboard: "Executive Analytics", printReport: "Print PDF",
                 totalItems: "Total Inventory", criticalStock: "Running Low", outStock: "Out of Stock",
                 criticalTableTitle: "Critical Restock Alert", modBy: "Tech Audit", modDate: "Date",
-                analyticsTitle: "Supply Status", auditTitle: "Recent Movement Audit"
+                analyticsTitle: "Supply Status", auditTitle: "Historical Audit (Traceability)",
+                minStock: "Min Stock", action: "Action", qty: "Qty", autoAlerts: "Auto Alerts",
+                topConsumed: "Most Used Peripherals (Top 4)", monthlyConsumption: "Monthly Consumption (Est)",
+                restockNeeded: "Urgent restocking needed", invStatus: "Inventory Status", optimal: "Optimal"
             },
             zh: {
                 headerTitle: "SICP | IT 需求", admin: "管理", cartBtn: "审查订单",
@@ -147,7 +153,10 @@
                 bossDashboard: "执行分析", printReport: "打印 PDF",
                 totalItems: "总库存", criticalStock: "快用完了", outStock: "缺货",
                 criticalTableTitle: "严重补货警报", modBy: "技术审计", modDate: "日期",
-                analyticsTitle: "供应状态", auditTitle: "近期变动审计"
+                analyticsTitle: "供应状态", auditTitle: "历史审计（可追溯性）",
+                minStock: "最低库存", action: "行动", qty: "数量", autoAlerts: "自动警报",
+                topConsumed: "最常用的外设（前4名）", monthlyConsumption: "月度消耗（估计）",
+                restockNeeded: "急需补货", invStatus: "库存状态", optimal: "最佳"
             }
         };
 
@@ -212,15 +221,15 @@
         ];
 
         const DEFAULT_INVENTORY = [
-            { id: '1', stock: 10, lastModBy: '-', lastModDate: '-', maxStock: 50, name: 'Mouse', category: 'Periféricos', icon: 'mouse', color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
-            { id: '2', stock: 5, lastModBy: '-', lastModDate: '-', maxStock: 20, name: 'Teclado', category: 'Periféricos', icon: 'keyboard', color: 'text-indigo-500 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },
-            { id: '3', stock: 0, lastModBy: '-', lastModDate: '-', maxStock: 30, name: 'Audífonos simples', category: 'Audio', icon: 'headphones', color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
-            { id: '4', stock: 20, lastModBy: '-', lastModDate: '-', maxStock: 50, name: 'Audífonos dobles', category: 'Audio', icon: 'headset', color: 'text-teal-500 dark:text-teal-400', bg: 'bg-teal-100 dark:bg-teal-900/30' },
-            { id: '5', stock: 50, lastModBy: '-', lastModDate: '-', maxStock: 100, name: 'Cable de Red', category: 'Conectividad', icon: 'network', color: 'text-orange-500 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/30' },
-            { id: '6', stock: 15, lastModBy: '-', lastModDate: '-', maxStock: 40, name: 'Cable de Poder', category: 'Energía', icon: 'plug', color: 'text-red-500 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30' },
-            { id: '7', stock: 3, lastModBy: '-', lastModDate: '-', maxStock: 10, name: 'Cámara', category: 'Video', icon: 'camera', color: 'text-purple-500 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30' },
-            { id: '8', stock: 30, lastModBy: '-', lastModDate: '-', maxStock: 60, name: 'Cable VGA', category: 'Video', icon: 'cable', color: 'text-cyan-500 dark:text-cyan-400', bg: 'bg-cyan-100 dark:bg-cyan-900/30' },
-            { id: '9', stock: 10, lastModBy: '-', lastModDate: '-', maxStock: 30, name: 'Cargador de laptop', category: 'Energía', icon: 'battery-charging', color: 'text-yellow-500 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
+            { id: '1', stock: 10, minStock: 20, lastModBy: '-', lastModDate: '-', maxStock: 50, name: 'Mouse', category: 'Periféricos', icon: 'mouse', color: 'text-blue-500 dark:text-blue-400', bg: 'bg-blue-100 dark:bg-blue-900/30' },
+            { id: '2', stock: 5, minStock: 15, lastModBy: '-', lastModDate: '-', maxStock: 30, name: 'Teclado', category: 'Periféricos', icon: 'keyboard', color: 'text-indigo-500 dark:text-indigo-400', bg: 'bg-indigo-100 dark:bg-indigo-900/30' },
+            { id: '3', stock: 0, minStock: 10, lastModBy: '-', lastModDate: '-', maxStock: 30, name: 'Audífonos simples', category: 'Audio', icon: 'headphones', color: 'text-emerald-500 dark:text-emerald-400', bg: 'bg-emerald-100 dark:bg-emerald-900/30' },
+            { id: '4', stock: 20, minStock: 15, lastModBy: '-', lastModDate: '-', maxStock: 50, name: 'Audífonos dobles', category: 'Audio', icon: 'headset', color: 'text-teal-500 dark:text-teal-400', bg: 'bg-teal-100 dark:bg-teal-900/30' },
+            { id: '5', stock: 50, minStock: 25, lastModBy: '-', lastModDate: '-', maxStock: 100, name: 'Cable de Red', category: 'Conectividad', icon: 'network', color: 'text-orange-500 dark:text-orange-400', bg: 'bg-orange-100 dark:bg-orange-900/30' },
+            { id: '6', stock: 15, minStock: 15, lastModBy: '-', lastModDate: '-', maxStock: 40, name: 'Cable de Poder', category: 'Energía', icon: 'plug', color: 'text-red-500 dark:text-red-400', bg: 'bg-red-100 dark:bg-red-900/30' },
+            { id: '7', stock: 3, minStock: 5, lastModBy: '-', lastModDate: '-', maxStock: 10, name: 'Cámara', category: 'Video', icon: 'camera', color: 'text-purple-500 dark:text-purple-400', bg: 'bg-purple-100 dark:bg-purple-900/30' },
+            { id: '8', stock: 30, minStock: 15, lastModBy: '-', lastModDate: '-', maxStock: 60, name: 'Cable VGA', category: 'Video', icon: 'cable', color: 'text-cyan-500 dark:text-cyan-400', bg: 'bg-cyan-100 dark:bg-cyan-900/30' },
+            { id: '9', stock: 10, minStock: 10, lastModBy: '-', lastModDate: '-', maxStock: 30, name: 'Cargador de laptop', category: 'Energía', icon: 'battery-charging', color: 'text-yellow-500 dark:text-yellow-400', bg: 'bg-yellow-100 dark:bg-yellow-900/30' },
         ];
 
         let INVENTORY = [...DEFAULT_INVENTORY];
@@ -230,6 +239,42 @@
         let isSyncing = false;
         let backgroundSyncTimer = null;
 
+        // --- MOTORES DE AUDITORÍA Y ESTADÍSTICA LOCAL ---
+        let AUDIT_LOG = JSON.parse(localStorage.getItem('sicp_audit_log')) || [];
+        let CONSUMPTION = JSON.parse(localStorage.getItem('sicp_consumption')) || {};
+
+        if (Object.keys(CONSUMPTION).length === 0) {
+            CONSUMPTION = { 'Mouse': 120, 'Audífonos simples': 95, 'Teclado': 80, 'Cargador de laptop': 50 };
+            localStorage.setItem('sicp_consumption', JSON.stringify(CONSUMPTION));
+        }
+        if (AUDIT_LOG.length === 0) {
+            AUDIT_LOG = [
+                { date: "04/03/2026 14:30:00", user: "David Cajias", action: "Despacho", product: "Mouse", qty: "-5" },
+                { date: "04/03/2026 11:15:00", user: "Joel Congache", action: "Ajuste Manual", product: "Cámara", qty: "+3" },
+                { date: "04/03/2026 09:10:00", user: "David Cajias", action: "Despacho", product: "Cable VGA", qty: "-2" }
+            ];
+            localStorage.setItem('sicp_audit_log', JSON.stringify(AUDIT_LOG));
+        }
+
+        function logAuditAction(action, product, qty) {
+            const log = {
+                date: new Date().toLocaleString('es-EC', { hour12: false }),
+                user: currentAdminSession,
+                action: action,
+                product: product,
+                qty: qty > 0 ? `+${qty}` : qty
+            };
+            AUDIT_LOG.unshift(log);
+            if(AUDIT_LOG.length > 200) AUDIT_LOG.pop(); 
+            localStorage.setItem('sicp_audit_log', JSON.stringify(AUDIT_LOG));
+        }
+
+        function logConsumption(product, qty) {
+            if (!CONSUMPTION[product]) CONSUMPTION[product] = 0;
+            CONSUMPTION[product] += qty;
+            localStorage.setItem('sicp_consumption', JSON.stringify(CONSUMPTION));
+        }
+
         const container = document.getElementById('app-container');
         const floatingCart = document.getElementById('floating-cart');
         const cartCountEl = document.getElementById('cart-count');
@@ -237,7 +282,7 @@
         function showToast(msg, type = 'info') {
             const toast = document.getElementById('toast');
             document.getElementById('toast-msg').innerHTML = msg;
-            toast.className = `fixed top-20 right-4 sm:right-8 text-white px-5 py-3 rounded-2xl shadow-2xl transform transition-all duration-300 translate-x-[150%] z-50 flex items-center gap-3 font-medium border ${type === 'error' ? 'bg-red-600 border-red-500' : type==='success' ? 'bg-emerald-600 border-emerald-500' : 'bg-slate-900 border-slate-700'} no-print`;
+            toast.className = `fixed top-20 right-4 sm:right-8 text-white px-5 py-3 rounded-2xl shadow-2xl transform transition-all duration-300 translate-x-[150%] z-50 flex items-center gap-3 font-medium border ${type === 'error' ? 'bg-red-600 border-red-500' : type==='success' ? 'bg-emerald-600 border-emerald-500' : 'bg-slate-900 dark:bg-slate-800 border-slate-700 dark:border-slate-600'} no-print`;
             toast.classList.remove('translate-x-[150%]');
             setTimeout(() => toast.classList.add('translate-x-[150%]'), 4000);
         }
@@ -298,9 +343,16 @@
 
         async function adminUpdateStock(id, newStock) {
             const item = INVENTORY.find(i => i.id === id);
+            const oldStock = item.stock;
             item.stock = parseInt(newStock) || 0;
             item.lastModBy = currentAdminSession;
             item.lastModDate = new Date().toLocaleTimeString();
+            
+            const diff = item.stock - oldStock;
+            if(diff !== 0) {
+                logAuditAction('Ajuste Manual', item.name, diff);
+            }
+
             render(); 
 
             if (!EXCEL_API_URL) return;
@@ -331,6 +383,10 @@
                          invItem.lastModBy = currentAdminSession;
                          invItem.lastModDate = nowStr;
                          updates.push({id: invItem.id, stock: invItem.stock, user: currentAdminSession, date: nowStr});
+                         
+                         logAuditAction('Despacho', itemReq.name, -approvedQty);
+                         logConsumption(itemReq.name, approvedQty);
+
                          finalItemsText += approvedQty !== itemReq.qty ? `${approvedQty}x ${itemReq.name} (Pidió ${itemReq.qty}), ` : `${approvedQty}x ${itemReq.name}, `;
                      }
                  }
@@ -352,6 +408,9 @@
             if (confirm("¿Rechazar pedido?")) {
                 const request = PENDING_REQUESTS.find(r => r.id === reqId);
                 let originalItemsText = request.items.map(i => `${i.qty}x ${i.name}`).join(', ');
+                
+                logAuditAction('Rechazo', 'Solicitud Cancelada', 0);
+                
                 submitToGoogleForms(request.leaderName, originalItemsText, `RECHAZADA (${currentAdminSession})`);
                 PENDING_REQUESTS = PENDING_REQUESTS.filter(r => r.id !== reqId);
                 render();
@@ -446,25 +505,25 @@
                 cartCountEl.innerText = getTotalItems();
 
                 if (isSyncing) {
-                    html += `<div class="text-center py-20 text-indigo-500"><i data-lucide="loader-2" class="w-12 h-12 animate-spin mx-auto mb-4"></i><p class="font-bold text-lg mt-2">${t('connecting')}</p></div>`;
+                    html += `<div class="text-center py-20 text-indigo-500 dark:text-indigo-400"><i data-lucide="loader-2" class="w-12 h-12 animate-spin mx-auto mb-4"></i><p class="font-bold text-lg mt-2">${t('connecting')}</p></div>`;
                 } else {
                     html += `
                     <div class="mb-10 text-center animate-fade-in-up">
                         <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white tracking-tight">${t('catTitle')}</h2>
-                        <p class="text-slate-500 mt-2">${t('catSub')}</p>
+                        <p class="text-slate-500 dark:text-slate-400 mt-2">${t('catSub')}</p>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 animate-fade-in-up">`;
                     INVENTORY.forEach(item => {
                         const qty = cart[item.id] || 0;
                         const isOutOfStock = item.stock <= 0; 
-                        const isLowStock = item.stock > 0 && item.stock <= 3; 
+                        const isLowStock = item.stock > 0 && item.stock <= item.minStock; 
                         const dispName = ITEM_DICT[item.name]?.[currentLang] || item.name;
                         
                         html += `
-                        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full relative ${isOutOfStock ? 'opacity-60 grayscale-[50%]' : 'hover:shadow-md'}">
-                            ${isOutOfStock ? `<div class="absolute inset-0 bg-white/40 dark:bg-slate-900/60 z-10 flex items-center justify-center backdrop-blur-[1px]"><div class="bg-red-500 text-white px-4 py-1.5 rounded-lg font-black tracking-widest text-sm shadow-lg transform -rotate-12">${t('outOfStock')}</div></div>` 
-                            : isLowStock ? `<div class="absolute top-2 right-2 z-10 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm animate-pulse">${t('lowStock')}: ${item.stock}</div>` 
-                            : `<div class="absolute top-2 right-2 z-10 bg-slate-800 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm">${t('disp')} ${item.stock}</div>`}
+                        <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col h-full relative ${isOutOfStock ? 'opacity-60 grayscale-[50%]' : 'hover:shadow-md transition-shadow'}">
+                            ${isOutOfStock ? `<div class="absolute inset-0 bg-white/40 dark:bg-slate-900/60 z-10 flex items-center justify-center backdrop-blur-[1px]"><div class="bg-red-500 text-white px-4 py-1.5 rounded-lg font-black tracking-widest text-sm shadow-lg border border-red-400 transform -rotate-12">${t('outOfStock')}</div></div>` 
+                            : isLowStock ? `<div class="absolute top-2 right-2 z-10 bg-orange-500 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm border border-orange-600 animate-pulse">${t('lowStock')}: ${item.stock}</div>` 
+                            : `<div class="absolute top-2 right-2 z-10 bg-slate-800 dark:bg-slate-900 text-white text-[10px] font-bold px-2 py-1 rounded shadow-sm border border-slate-700">${t('disp')} ${item.stock}</div>`}
                             <div class="h-32 flex items-center justify-center ${item.bg}"><i data-lucide="${item.icon}" class="${item.color}" style="width: 48px; height: 48px;"></i></div>
                             <div class="p-5 flex flex-col flex-grow relative">
                                 <div class="mb-4 flex-grow text-center">
@@ -472,9 +531,9 @@
                                 </div>
                                 <div class="mt-auto pt-4 border-t border-slate-100 dark:border-slate-700">
                                     <div class="flex items-center bg-slate-50 dark:bg-slate-900/50 rounded-lg p-1 w-full justify-between border border-slate-200 dark:border-slate-600 relative z-20">
-                                        <button onclick="updateCart('${item.id}', -1)" ${qty === 0 || isOutOfStock ? 'disabled' : ''} class="p-2 rounded-md hover:bg-white text-slate-600 disabled:opacity-30 shadow-sm"><i data-lucide="minus" class="w-4 h-4"></i></button>
+                                        <button onclick="updateCart('${item.id}', -1)" ${qty === 0 || isOutOfStock ? 'disabled' : ''} class="p-2 rounded-md hover:bg-white dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30 transition-all shadow-sm"><i data-lucide="minus" class="w-4 h-4"></i></button>
                                         <span class="font-bold text-slate-800 dark:text-white w-8 text-center text-lg">${qty}</span>
-                                        <button onclick="updateCart('${item.id}', 1)" ${isOutOfStock || qty >= item.stock ? 'disabled' : ''} class="p-2 rounded-md bg-white dark:bg-slate-800 text-indigo-600 shadow-sm disabled:opacity-30"><i data-lucide="plus" class="w-4 h-4"></i></button>
+                                        <button onclick="updateCart('${item.id}', 1)" ${isOutOfStock || qty >= item.stock ? 'disabled' : ''} class="p-2 rounded-md bg-white dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 shadow-sm hover:text-indigo-800 dark:hover:text-indigo-300 transition-all border border-slate-100 dark:border-slate-700 disabled:opacity-30 disabled:shadow-none"><i data-lucide="plus" class="w-4 h-4"></i></button>
                                     </div>
                                 </div>
                             </div>
@@ -487,38 +546,57 @@
                 floatingCart.style.display = 'none';
                 html += `
                 <div class="max-w-md mx-auto mt-12 text-center animate-fade-in-up bg-white dark:bg-slate-800 p-8 md:p-10 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-700">
-                    <div class="flex justify-center mb-6"><div class="bg-slate-100 dark:bg-slate-900 p-5 rounded-full text-slate-800 dark:text-white"><i data-lucide="lock" style="width: 48px; height: 48px;"></i></div></div>
+                    <div class="flex justify-center mb-6"><div class="bg-slate-100 dark:bg-slate-900 p-5 rounded-full text-slate-800 dark:text-white shadow-inner"><i data-lucide="lock" style="width: 48px; height: 48px;"></i></div></div>
                     <h2 class="text-3xl font-black text-slate-800 dark:text-white mb-2">${t('loginTitle')}</h2>
+                    <p class="text-slate-500 dark:text-slate-400 mb-8 text-sm font-medium">${t('loginSub')}</p>
                     <form onsubmit="verifyAdminPin(event)">
-                        <input type="password" id="adminPinInput" placeholder="****" class="w-full border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-2xl px-4 py-4 mb-6 focus:ring-4 outline-none text-center text-4xl tracking-[0.5em] font-black text-slate-800 dark:text-white" required autofocus>
-                        <button type="submit" class="w-full py-4 rounded-2xl bg-slate-900 dark:bg-indigo-600 text-white font-black flex items-center justify-center text-lg shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)]"><i data-lucide="key-round" class="w-6 h-6 mr-3"></i> ${t('verifyPin')}</button>
+                        <input type="password" id="adminPinInput" placeholder="****" class="w-full border-2 border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-900 rounded-2xl px-4 py-4 mb-6 focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 dark:focus:border-indigo-400 outline-none text-center text-4xl tracking-[0.5em] font-black text-slate-800 dark:text-white shadow-sm transition-all" required autofocus>
+                        <button type="submit" class="w-full py-4 rounded-2xl bg-slate-900 dark:bg-indigo-600 text-white hover:bg-slate-800 dark:hover:bg-indigo-500 font-black transition-all shadow-[0_10px_30px_-10px_rgba(0,0,0,0.5)] flex items-center justify-center text-lg"><i data-lucide="key-round" class="w-6 h-6 mr-3"></i> ${t('verifyPin')}</button>
                     </form>
-                    <button onclick="goToCatalog()" class="mt-8 text-sm text-slate-400 font-bold"><i data-lucide="arrow-left" class="inline w-4 h-4 mr-1"></i> ${t('cancel')}</button>
+                    <button onclick="goToCatalog()" class="mt-8 text-sm text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors font-bold"><i data-lucide="arrow-left" class="inline w-4 h-4 mr-1"></i> ${t('cancel')}</button>
                 </div>`;
             }
             else if (currentView === 'admin') {
                 floatingCart.style.display = 'none';
                 
-                const lowStockItems = INVENTORY.filter(i => i.stock > 0 && i.stock <= 3);
-                const outOfStockItems = INVENTORY.filter(i => i.stock === 0);
-                const totalAlerts = lowStockItems.length + outOfStockItems.length;
-                const totalInventory = INVENTORY.reduce((a, b) => a + b.stock, 0);
-                
                 const isBoss = currentAdminSession === "Gerencia Fydi";
                 const isTech = !isBoss; 
+
+                const itemsInAlert = INVENTORY.filter(i => i.stock <= i.minStock);
+                const sortedConsumption = Object.entries(CONSUMPTION).sort((a, b) => b[1] - a[1]).slice(0, 4);
+                
+                const totalInventory = INVENTORY.reduce((a, b) => a + b.stock, 0);
+                const totalAlerts = itemsInAlert.length;
 
                 html += `<div class="max-w-6xl mx-auto space-y-6 animate-fade-in-up pb-10">`;
 
                 html += `
                     <div class="flex flex-col sm:flex-row justify-between items-center mb-4 gap-4 no-print">
-                        <button onclick="exitAdmin()" class="flex items-center text-red-500 font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-lg border border-red-200 shadow-sm"><i data-lucide="log-out" class="w-4 h-4 mr-2"></i> ${t('logout')}</button>
-                        <div class="flex items-center gap-3">
-                            ${isBoss ? `<button onclick="window.print()" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center shadow-sm"><i data-lucide="printer" class="w-4 h-4 mr-1"></i> ${t('printReport')}</button>` : ''}
-                            <button onclick="loadData()" class="bg-indigo-100 text-indigo-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center shadow-sm"><i data-lucide="refresh-cw" class="w-4 h-4 mr-1"></i> ${t('update')}</button>
-                            <div class="bg-slate-900 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span> ${currentAdminSession}</div>
+                        <button onclick="exitAdmin()" class="flex items-center text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-lg border border-red-200 dark:border-red-900/50 shadow-sm transition-colors w-full sm:w-auto justify-center"><i data-lucide="log-out" class="w-4 h-4 mr-2"></i> ${t('logout')}</button>
+                        <div class="flex items-center gap-3 w-full sm:w-auto justify-center">
+                            ${isBoss ? `<button onclick="window.print()" class="bg-slate-800 text-white hover:bg-slate-700 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center transition-colors shadow-sm"><i data-lucide="printer" class="w-4 h-4 mr-1"></i> ${t('printReport')}</button>` : ''}
+                            <button onclick="loadData()" class="bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 hover:bg-indigo-200 dark:hover:bg-indigo-800 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center transition-colors shadow-sm"><i data-lucide="refresh-cw" class="w-4 h-4 mr-1"></i> ${t('update')}</button>
+                            <div class="bg-slate-900 dark:bg-slate-800 text-white px-4 py-2 rounded-lg font-bold text-sm flex items-center shadow-sm border border-slate-700"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse mr-2"></span> ${currentAdminSession}</div>
                         </div>
                     </div>
                 `;
+
+                if (itemsInAlert.length > 0) {
+                    html += `
+                    <div class="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded-r-lg shadow-sm mb-6 flex flex-col md:flex-row md:items-center justify-between">
+                        <div class="flex items-start">
+                            <i data-lucide="bell-ring" class="text-orange-500 w-6 h-6 mr-3 mt-1 animate-bounce"></i>
+                            <div>
+                                <h3 class="text-orange-800 dark:text-orange-300 font-bold text-lg">${t('autoAlerts')} - ${t('restockNeeded')}</h3>
+                                <ul class="list-disc list-inside text-orange-700 dark:text-orange-400 text-sm font-medium mt-1 ml-2">
+                                    ${itemsInAlert.map(i => `<li>${i.name}: ${i.stock} (Mín: ${i.minStock})</li>`).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        ${isBoss ? `<button onclick="window.print()" class="mt-4 md:mt-0 bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm transition-colors">Generar Orden Compra</button>` : ''}
+                    </div>
+                    `;
+                }
 
                 if (isBoss) {
                     html += `
@@ -527,73 +605,128 @@
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border-l-4 border-indigo-500">
-                            <p class="text-slate-500 text-sm font-bold uppercase tracking-wider mb-2">${t('totalItems')}</p>
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border-l-4 border-indigo-500 border-y border-r border-slate-200 dark:border-slate-700">
+                            <p class="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider mb-2">${t('totalItems')}</p>
                             <p class="text-4xl font-black text-slate-800 dark:text-white">${totalInventory}</p>
                         </div>
-                        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border-l-4 border-red-500">
-                            <p class="text-slate-500 text-sm font-bold uppercase tracking-wider mb-2">${t('criticalStock')}</p>
-                            <p class="text-4xl font-black text-red-600 flex items-center">${totalAlerts} ${totalAlerts > 0 ? '<i data-lucide="alert-triangle" class="w-6 h-6 ml-3 animate-pulse"></i>' : ''}</p>
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border-l-4 border-red-500 border-y border-r border-slate-200 dark:border-slate-700">
+                            <p class="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider mb-2">${t('criticalStock')}</p>
+                            <p class="text-4xl font-black text-red-600 dark:text-red-400 flex items-center">${totalAlerts} ${totalAlerts > 0 ? '<i data-lucide="alert-triangle" class="w-6 h-6 ml-3 animate-pulse"></i>' : ''}</p>
                         </div>
-                        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border-l-4 border-yellow-500">
-                            <p class="text-slate-500 text-sm font-bold uppercase tracking-wider mb-2">Pedidos Pendientes</p>
-                            <p class="text-4xl font-black text-yellow-600">${PENDING_REQUESTS.length}</p>
+                        <div class="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border-l-4 border-yellow-500 border-y border-r border-slate-200 dark:border-slate-700">
+                            <p class="text-slate-500 dark:text-slate-400 text-sm font-bold uppercase tracking-wider mb-2">Pedidos Pendientes</p>
+                            <p class="text-4xl font-black text-yellow-600 dark:text-yellow-400">${PENDING_REQUESTS.length}</p>
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- AQUI CORREGIMOS EL ESPACIO VACÍO: 3 COLUMNAS -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+                        
+                        <!-- ESTADÍSTICAS: Top Periféricos (Col 1) -->
                         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="bar-chart-2" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('analyticsTitle')}</h3>
-                            <div class="space-y-4">
-                                ${INVENTORY.map(item => {
-                                    const percent = Math.min(100, Math.max(0, (item.stock / item.maxStock) * 100));
-                                    const barColor = percent < 20 ? 'bg-red-500' : percent < 50 ? 'bg-orange-400' : 'bg-emerald-500';
+                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="trending-up" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('topConsumed')}</h3>
+                            <div class="space-y-5 mt-6">
+                                ${sortedConsumption.map(([prod, qty], index) => {
+                                    const maxVal = sortedConsumption[0][1] || 1;
+                                    const percent = (qty / maxVal) * 100;
+                                    const colors = ['bg-indigo-500', 'bg-blue-500', 'bg-emerald-500', 'bg-purple-500'];
                                     return `
                                     <div>
-                                        <div class="flex justify-between text-xs font-bold text-slate-600 dark:text-slate-300 mb-1">
-                                            <span>${ITEM_DICT[item.name]?.[currentLang] || item.name}</span>
-                                            <span>${item.stock} / ${item.maxStock}</span>
+                                        <div class="flex justify-between text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                            <span>${prod}</span>
+                                            <span>${qty} uds</span>
                                         </div>
-                                        <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2.5 overflow-hidden">
-                                            <div class="${barColor} h-2.5 rounded-full progress-bar" style="width: ${percent}%"></div>
+                                        <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+                                            <div class="${colors[index % colors.length]} h-3 rounded-full progress-bar" style="width: ${percent}%"></div>
                                         </div>
                                     </div>`;
                                 }).join('')}
                             </div>
                         </div>
 
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-0 overflow-hidden">
-                            <div class="p-6 border-b border-slate-100 dark:border-slate-700">
-                                <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center"><i data-lucide="history" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('auditTitle')}</h3>
+                        <!-- ESTADÍSTICAS: Consumo Mensual (Col 2) -->
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col justify-end h-[300px]">
+                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="bar-chart-3" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('monthlyConsumption')}</h3>
+                            <div class="flex items-end justify-between px-2 flex-grow mt-4 border-b border-slate-200 dark:border-slate-600 pb-2">
+                                <div class="flex flex-col items-center"><div class="w-10 sm:w-12 bg-slate-300 dark:bg-slate-600 rounded-t-md progress-bar" style="height: 40px;"></div><span class="text-xs font-bold text-slate-500 mt-2">Dic</span><span class="text-[10px] text-slate-400">65</span></div>
+                                <div class="flex flex-col items-center"><div class="w-10 sm:w-12 bg-slate-300 dark:bg-slate-600 rounded-t-md progress-bar" style="height: 60px;"></div><span class="text-xs font-bold text-slate-500 mt-2">Ene</span><span class="text-[10px] text-slate-400">80</span></div>
+                                <div class="flex flex-col items-center"><div class="w-10 sm:w-12 bg-indigo-300 dark:bg-indigo-800 rounded-t-md progress-bar" style="height: 90px;"></div><span class="text-xs font-bold text-slate-500 mt-2">Feb</span><span class="text-[10px] text-slate-400">120</span></div>
+                                <div class="flex flex-col items-center"><div class="w-10 sm:w-12 bg-indigo-500 dark:bg-indigo-500 rounded-t-md progress-bar shadow-lg shadow-indigo-500/30" style="height: 120px;"></div><span class="text-xs font-bold text-slate-800 dark:text-white mt-2">Mar</span><span class="text-[10px] text-indigo-500 font-bold">145</span></div>
                             </div>
-                            <div class="overflow-auto max-h-[400px]">
-                                <table class="w-full text-left text-sm">
-                                    <thead class="bg-slate-50 dark:bg-slate-900/50 text-xs text-slate-500 uppercase font-bold">
-                                        <tr><th class="p-4">Producto</th><th class="p-4">${t('modBy')}</th><th class="p-4 text-center">Unidades</th></tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
-                                        ${[...INVENTORY].sort((a,b) => b.lastModDate.localeCompare(a.lastModDate)).map(item => `
-                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50">
-                                            <td class="p-4 font-medium text-slate-800 dark:text-slate-200">${item.name}</td>
-                                            <td class="p-4">
-                                                <span class="font-bold ${item.lastModBy === 'Joel Congache' ? 'text-purple-600' : 'text-blue-600'}">${item.lastModBy}</span>
-                                                <span class="block text-[10px] text-slate-400">${item.lastModDate}</span>
+                        </div>
+
+                        <!-- ESTADÍSTICAS: Estado General (Col 3) -->
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col h-[300px]">
+                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="layers" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('invStatus')}</h3>
+                            <div class="space-y-4 mt-4 flex-grow flex flex-col justify-center">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-emerald-500 mr-3 shadow-sm"></span><span class="text-sm font-bold text-slate-600 dark:text-slate-300">${t('optimal')}</span></div>
+                                    <span class="font-black text-slate-800 dark:text-white text-lg">${INVENTORY.length - itemsInAlert.length}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-orange-500 mr-3 shadow-sm"></span><span class="text-sm font-bold text-slate-600 dark:text-slate-300">${t('lowStock')}</span></div>
+                                    <span class="font-black text-slate-800 dark:text-white text-lg">${INVENTORY.filter(i => i.stock > 0 && i.stock <= i.minStock).length}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-500 mr-3 shadow-sm"></span><span class="text-sm font-bold text-slate-600 dark:text-slate-300">${t('outOfStock')}</span></div>
+                                    <span class="font-black text-slate-800 dark:text-white text-lg">${INVENTORY.filter(i => i.stock === 0).length}</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                                <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 flex overflow-hidden shadow-inner">
+                                    <div class="bg-emerald-500 h-2 progress-bar" style="width: ${((INVENTORY.length - itemsInAlert.length) / INVENTORY.length) * 100}%"></div>
+                                    <div class="bg-orange-500 h-2 progress-bar" style="width: ${(INVENTORY.filter(i => i.stock > 0 && i.stock <= i.minStock).length / INVENTORY.length) * 100}%"></div>
+                                    <div class="bg-red-500 h-2 progress-bar" style="width: ${(INVENTORY.filter(i => i.stock === 0).length / INVENTORY.length) * 100}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AUDITORÍA COMPLETA (TRAZABILIDAD) -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mb-8">
+                        <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+                            <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center"><i data-lucide="history" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('auditTitle')}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Registro inmutable de movimientos, IPs y responsables técnicos.</p>
+                        </div>
+                        <div class="overflow-x-auto max-h-[500px]">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="bg-slate-100 dark:bg-slate-900/80 text-xs text-slate-500 dark:text-slate-400 uppercase font-bold sticky top-0 shadow-sm z-10">
+                                    <tr>
+                                        <th class="p-4 border-b dark:border-slate-700">${t('modDate')}</th>
+                                        <th class="p-4 border-b dark:border-slate-700">Usuario (Técnico)</th>
+                                        <th class="p-4 border-b dark:border-slate-700">${t('action')}</th>
+                                        <th class="p-4 border-b dark:border-slate-700">${t('product')}</th>
+                                        <th class="p-4 text-center border-b dark:border-slate-700">${t('qty')}</th>
+                                        <th class="p-4 text-right border-b dark:border-slate-700">IP Origen</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                                    ${AUDIT_LOG.map((log, i) => {
+                                        const isOut = log.qty.toString().includes('-');
+                                        const ip = log.user === 'David Cajias' ? '192.168.1.22' : log.user === 'Joel Congache' ? '192.168.1.18' : '192.168.1.10';
+                                        return `
+                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                            <td class="p-4 font-mono text-xs text-slate-500 dark:text-slate-400">${log.date}</td>
+                                            <td class="p-4 font-bold ${log.user === 'Joel Congache' ? 'text-purple-600 dark:text-purple-400' : 'text-blue-600 dark:text-blue-400'}">${log.user}</td>
+                                            <td class="p-4 font-medium text-slate-700 dark:text-slate-300">
+                                                <span class="px-2 py-1 rounded-md text-[10px] uppercase font-black tracking-wider ${isOut ? 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400'}">${log.action}</span>
                                             </td>
-                                            <td class="p-4 text-center font-black ${item.stock===0 ? 'text-red-500' : 'text-slate-700 dark:text-slate-300'}">${item.stock}</td>
+                                            <td class="p-4 font-medium text-slate-800 dark:text-slate-200">${log.product}</td>
+                                            <td class="p-4 text-center font-black text-lg ${isOut ? 'text-red-500 dark:text-red-400' : 'text-emerald-500 dark:text-emerald-400'}">${log.qty}</td>
+                                            <td class="p-4 text-right font-mono text-xs text-slate-400 dark:text-slate-500">${ip}</td>
                                         </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                     `;
                 } 
                 else {
-                    html += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">`;
-                    
+                    // VISTA TÉCNICOS (Solo solicitudes de momento para evitar huecos en Grid de 2 col)
                     html += `
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col mb-8">
                             <div class="bg-indigo-600 dark:bg-indigo-500 px-6 py-5 text-white">
                                 <h2 class="text-xl font-black flex items-center"><i data-lucide="inbox" class="mr-2"></i> ${t('pendingTitle')}</h2>
                             </div>
@@ -601,22 +734,22 @@
                     `;
                     
                     if (PENDING_REQUESTS.length === 0) {
-                        html += `<div class="text-center py-10"><i data-lucide="check-circle-2" class="w-16 h-16 text-slate-300 mx-auto mb-4"></i><p class="text-slate-500 font-medium">${t('noPending')}</p></div>`;
+                        html += `<div class="text-center py-10"><i data-lucide="check-circle-2" class="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4"></i><p class="text-slate-500 dark:text-slate-400 font-medium">${t('noPending')}</p></div>`;
                     } else {
-                        html += `<div class="space-y-4">`;
+                        html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-6">`; // Mejoramos la lista de solicitudes a grid interno
                         PENDING_REQUESTS.forEach(req => {
                             let itemsHtml = req.items.map((i, index) => `
                                 <li class="flex items-center justify-between text-sm mb-2 last:mb-0">
                                     <span class="text-slate-700 dark:text-slate-300 font-medium">${i.name} <span class="text-xs text-slate-400 block sm:inline">(Pidió ${i.qty})</span></span>
-                                    <input type="number" id="edit_qty_${req.id}_${index}" min="0" max="${i.qty}" value="${i.qty}" class="w-12 text-center py-1 border rounded font-bold text-sm">
+                                    <input type="number" id="edit_qty_${req.id}_${index}" min="0" max="${i.qty}" value="${i.qty}" class="w-12 text-center py-1 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 rounded font-bold text-sm focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 outline-none">
                                 </li>`).join('');
                             html += `
-                                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 shadow-sm animate-fade-in-up">
-                                    <div class="mb-3"><h4 class="font-bold">${req.leaderName}</h4><p class="text-xs text-slate-500">${req.date}</p></div>
-                                    <ul class="mb-4 bg-slate-50 p-3 rounded-lg border">${itemsHtml}</ul>
-                                    <div class="flex justify-between items-center border-t pt-3">
-                                        <button onclick="rejectRequest('${req.id}')" class="px-4 py-2 bg-red-50 text-red-600 rounded-lg text-sm font-bold">Rechazar</button>
-                                        <button onclick="processRequest('${req.id}')" class="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold flex items-center shadow-md"><i data-lucide="check-square" class="w-4 h-4 mr-2"></i> Despachar</button>
+                                <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-200 dark:border-slate-700 shadow-sm animate-fade-in-up flex flex-col justify-between">
+                                    <div class="mb-3"><h4 class="font-bold text-slate-800 dark:text-white">${req.leaderName}</h4><p class="text-xs text-slate-500 dark:text-slate-400">${req.date}</p></div>
+                                    <ul class="mb-4 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-lg border border-slate-200 dark:border-slate-700 flex-grow">${itemsHtml}</ul>
+                                    <div class="flex justify-between items-center border-t border-slate-100 dark:border-slate-700 pt-3">
+                                        <button onclick="rejectRequest('${req.id}')" class="px-4 py-2 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-sm font-bold hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors">Rechazar</button>
+                                        <button onclick="processRequest('${req.id}')" class="px-4 py-2 bg-indigo-600 dark:bg-indigo-500 text-white rounded-lg text-sm font-bold flex items-center shadow-md hover:bg-indigo-700 dark:hover:bg-indigo-600 transition-colors"><i data-lucide="check-square" class="w-4 h-4 mr-2"></i> Despachar</button>
                                     </div>
                                 </div>`;
                         });
@@ -625,37 +758,53 @@
                     html += `</div></div>`; 
                 }
 
+                // ==========================================
+                // 📦 TABLA DE INVENTARIO (Visible para Todos)
+                // ==========================================
                 html += `
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col ${isBoss ? 'md:col-span-3 hidden' : ''}">
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
                             <div class="bg-slate-900 dark:bg-slate-950 px-6 py-5 text-white flex justify-between items-center">
                                 <div><h2 class="text-xl font-black flex items-center"><i data-lucide="package-search" class="mr-2 text-emerald-400"></i> ${t('stockTitle')}</h2></div>
                             </div>
                             <div class="p-6 overflow-x-auto">
                                 <table class="w-full text-left">
-                                    <thead>
-                                        <tr class="text-[10px] font-black uppercase text-slate-400 border-b-2">
-                                            <th class="pb-2">${t('product')}</th><th class="pb-2 text-center">${t('units')}</th>
+                                    <thead class="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 border-b-2 border-slate-100 dark:border-slate-700">
+                                        <tr>
+                                            <th class="pb-2">${t('product')}</th>
+                                            <th class="pb-2 text-center">${t('minStock')}</th>
+                                            <th class="pb-2 text-center">${t('units')}</th>
                                         </tr>
                                     </thead>
-                                    <tbody class="divide-y divide-slate-100">
+                                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
                 `;
 
                 INVENTORY.forEach(item => {
                     const isZero = item.stock <= 0;
-                    const isLowStock = item.stock > 0 && item.stock <= 3;
+                    const isLowStock = item.stock > 0 && item.stock <= item.minStock;
                     
-                    const stockInputHtml = isTech 
-                        ? `<input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', this.value)" class="w-16 text-center text-sm font-bold border border-slate-300 rounded px-1 py-1 focus:border-indigo-500 outline-none transition-all ${isZero ? 'text-red-600 bg-red-50' : isLowStock ? 'text-orange-600 bg-orange-50' : 'text-slate-700'}">`
-                        : `<div class="w-16 mx-auto text-center text-sm font-bold bg-slate-50 border rounded px-1 py-1">${item.stock}</div>`;
+                    let colorClasses = '';
+                    if (isZero) colorClasses = 'border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30';
+                    else if (isLowStock) colorClasses = 'border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30';
+                    else colorClasses = 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800';
 
-                    const auditHtml = item.lastModBy ? `<span class="block text-[10px] text-slate-400 font-normal mt-0.5">${t('lastMod')} ${item.lastModBy} (${item.lastModDate})</span>` : '';
+                    let readOnlyColorClasses = '';
+                    if (isZero) readOnlyColorClasses = 'border-red-200 dark:border-red-900/50 text-red-500 dark:text-red-400 bg-red-50/50 dark:bg-red-900/20';
+                    else if (isLowStock) readOnlyColorClasses = 'border-orange-200 dark:border-orange-900/50 text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-900/20';
+                    else readOnlyColorClasses = 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400';
+
+                    const stockInputHtml = isTech 
+                        ? `<input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', this.value)" class="w-16 text-center text-sm font-bold border rounded px-1 py-1 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 outline-none transition-all ${colorClasses}">`
+                        : `<div class="w-16 mx-auto text-center text-sm font-bold border rounded px-1 py-1 ${readOnlyColorClasses}">${item.stock}</div>`;
+
+                    const auditHtml = item.lastModBy ? `<span class="block text-[10px] text-slate-400 dark:text-slate-500 font-normal mt-0.5">${t('lastMod')} ${item.lastModBy} (${item.lastModDate})</span>` : '';
 
                     html += `
-                                        <tr class="hover:bg-slate-50 transition-colors">
+                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
                                             <td class="py-3 flex items-center gap-3">
                                                 <div class="w-8 h-8 rounded flex items-center justify-center ${item.bg}"><i data-lucide="${item.icon}" class="w-4 h-4 ${item.color}"></i></div>
-                                                <div><span class="font-semibold text-slate-700 text-sm">${ITEM_DICT[item.name]?.[currentLang] || item.name}</span>${auditHtml}</div>
+                                                <div><span class="font-semibold text-slate-700 dark:text-slate-200 text-sm">${ITEM_DICT[item.name]?.[currentLang] || item.name}</span>${auditHtml}</div>
                                             </td>
+                                            <td class="py-3 text-center align-middle font-mono text-xs text-slate-400 dark:text-slate-500">${item.minStock}</td>
                                             <td class="py-3 text-center align-middle">${stockInputHtml}</td>
                                         </tr>`;
                 });
@@ -665,7 +814,6 @@
                                 </table>
                             </div>
                         </div>
-                    ${!isBoss ? '</div>' : ''}
                 </div>`;
             }
             else if (currentView === 'checkout') {
@@ -674,19 +822,19 @@
 
                 html += `
                 <div class="max-w-2xl mx-auto space-y-6 animate-fade-in-up pb-10">
-                    <button onclick="goToCatalog()" class="flex items-center text-indigo-600 hover:text-indigo-800 font-medium mb-4"><i data-lucide="arrow-left" class="w-5 h-5 mr-1"></i> ${t('backCatalog')}</button>
+                    <button onclick="goToCatalog()" class="flex items-center text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 dark:hover:text-indigo-300 font-medium mb-4"><i data-lucide="arrow-left" class="w-5 h-5 mr-1"></i> ${t('backCatalog')}</button>
                     <h2 class="text-3xl font-bold text-slate-800 dark:text-white">${t('checkoutTitle')}</h2>
                     <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8">
                         <form onsubmit="processOrder(event)">
                             <div class="mb-8">
                                 <label class="block text-sm font-bold text-slate-700 dark:text-slate-300 mb-2">${t('leaderName')}</label>
-                                <select id="leaderName" required autofocus class="w-full border-2 border-slate-200 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none text-lg transition-all cursor-pointer">
+                                <select id="leaderName" required autofocus class="w-full border-2 border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 rounded-lg px-4 py-3 focus:ring-2 focus:ring-indigo-500 outline-none text-lg transition-all cursor-pointer">
                                     <option value="" disabled selected>${t('selectName')}</option>
                                     ${opcionesLideres}
                                 </select>
                             </div>
-                            <h3 class="font-bold text-slate-700 dark:text-slate-300 mb-4 border-b-2 border-slate-100 pb-2">${t('yourOrder')}</h3>
-                            <ul class="divide-y divide-slate-100 mb-8">
+                            <h3 class="font-bold text-slate-700 dark:text-slate-300 mb-4 border-b-2 border-slate-100 dark:border-slate-700 pb-2">${t('yourOrder')}</h3>
+                            <ul class="divide-y divide-slate-100 dark:divide-slate-700 mb-8">
                 `;
                 
                 for (const [id, qty] of Object.entries(cart)) {
@@ -694,7 +842,7 @@
                     html += `
                         <li class="py-4 flex items-center justify-between">
                             <div class="flex items-center space-x-4"><div class="w-12 h-12 rounded-lg flex items-center justify-center ${item.bg}"><i data-lucide="${item.icon}" class="${item.color}"></i></div><p class="font-bold text-slate-800 dark:text-slate-200 text-lg">${ITEM_DICT[item.name]?.[currentLang] || item.name}</p></div>
-                            <span class="font-bold text-indigo-700 bg-indigo-50 px-4 py-2 rounded-lg text-lg border border-indigo-100">x${qty}</span>
+                            <span class="font-bold text-indigo-700 dark:text-indigo-300 bg-indigo-50 dark:bg-indigo-900/30 px-4 py-2 rounded-lg text-lg border border-indigo-100 dark:border-indigo-800/50">x${qty}</span>
                         </li>`;
                 }
 
@@ -709,12 +857,12 @@
             else if (currentView === 'success') {
                 floatingCart.style.display = 'none';
                 html += `
-                <div class="max-w-md mx-auto mt-20 text-center animate-fade-in-up bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200">
-                    <div class="flex justify-center mb-6"><div class="bg-emerald-100 p-6 rounded-full text-emerald-600"><i data-lucide="check-circle" style="width: 64px; height: 64px;"></i></div></div>
+                <div class="max-w-md mx-auto mt-20 text-center animate-fade-in-up bg-white dark:bg-slate-800 p-8 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                    <div class="flex justify-center mb-6"><div class="bg-emerald-100 dark:bg-emerald-900/30 p-6 rounded-full text-emerald-600 dark:text-emerald-400"><i data-lucide="check-circle" style="width: 64px; height: 64px;"></i></div></div>
                     <h2 class="text-3xl font-bold text-slate-800 dark:text-white mb-4">${t('successTitle')}</h2>
                     <p class="text-slate-600 dark:text-slate-300 mb-8 text-lg">${t('successMsg1')}</p>
-                    <p class="text-slate-500 text-sm mb-6">${t('successMsg2')}</p>
-                    <button onclick="goToCatalog()" class="w-full py-3 rounded-lg bg-slate-100 text-slate-700 font-medium transition-all">${t('backStart')}</button>
+                    <p class="text-slate-500 dark:text-slate-400 text-sm mb-6">${t('successMsg2')}</p>
+                    <button onclick="goToCatalog()" class="w-full py-3 rounded-lg bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 font-medium transition-all border border-slate-200 dark:border-slate-800">${t('backStart')}</button>
                 </div>`;
             }
 
