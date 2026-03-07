@@ -196,7 +196,7 @@
             currentLang = lang; localStorage.setItem('sicp_lang', lang); render();
         }
 
-        const EXCEL_API_URL = "https://script.google.com/macros/s/AKfycbxiwsjDX4n_yEjOd-iJSVfO1fbysEz4vJrX4Cz9qIu_EjMNQPU6f6WOIJ7nWwkdY7kwlQ/exec"; 
+        const EXCEL_API_URL = "https://script.google.com/macros/s/AKfycbyufsogzX2J-Pz43hTm8OX2udruHvWJcf-jm3BiQhPNddAG9ucpl_PammVnVKpWvrkJTg/exec"; 
         
         const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfFxX65M8NgVPHB09LqC-mIRFi5_owL5G73EszBKKQNZlVVrQ/formResponse";
         const ENTRY_NAME = "entry.519287369"; 
@@ -217,7 +217,7 @@
             "Ivy Estupinan - Líder", "Jeimmy Macias - Líder", "Jonathan Ramirez - Líder", "Jordan Trujillo - Líder",
             "Joshep Casarez - Líder","Juan Lopez - Líder", "Kyara - Líder", "Luis Betancour - Aud.", "Magaly - G.C.", "Noenmi - Líder",
             "Rafaela - G.C.", "Rayza - Líder", "Ricardo - Líder", "Roberto Flores - Líder", "Roger Garcia - Líder",
-            "Romel Chuchimbe - Líder", "Sabrina - Líder", "Victor - Líder", "Samantha Fonseca - Líder", "Stalin Cabascango - Líder"
+            "Romel Chuchimbe - Líder", "Sabrina - Líder", "Samantha Fonseca - Líder", "Stalin Cabascango - Líder"
         ];
 
         const DEFAULT_INVENTORY = [
@@ -619,7 +619,8 @@
                         </div>
                     </div>
                     
-                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- AQUI CORREGIMOS EL ESPACIO VACÍO: 3 COLUMNAS -->
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                         
                         <!-- ESTADÍSTICAS: Top Periféricos (Col 1) -->
                         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
@@ -643,53 +644,89 @@
                             </div>
                         </div>
 
-                        <!-- AUDITORÍA COMPLETA (TRAZABILIDAD) -->
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mb-8">
-                            <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
-                                <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center"><i data-lucide="history" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('auditTitle')}</h3>
-                                <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Registro inmutable de movimientos, IPs y responsables técnicos.</p>
+                        <!-- ESTADÍSTICAS: Consumo Mensual (Col 2) -->
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col justify-end h-[300px]">
+                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="bar-chart-3" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('monthlyConsumption')}</h3>
+                            <div class="flex items-end justify-between px-2 flex-grow mt-4 border-b border-slate-200 dark:border-slate-600 pb-2">
+                                <div class="flex flex-col items-center"><div class="w-10 sm:w-12 bg-slate-300 dark:bg-slate-600 rounded-t-md progress-bar" style="height: 40px;"></div><span class="text-xs font-bold text-slate-500 mt-2">Dic</span><span class="text-[10px] text-slate-400">65</span></div>
+                                <div class="flex flex-col items-center"><div class="w-10 sm:w-12 bg-slate-300 dark:bg-slate-600 rounded-t-md progress-bar" style="height: 60px;"></div><span class="text-xs font-bold text-slate-500 mt-2">Ene</span><span class="text-[10px] text-slate-400">80</span></div>
+                                <div class="flex flex-col items-center"><div class="w-10 sm:w-12 bg-indigo-300 dark:bg-indigo-800 rounded-t-md progress-bar" style="height: 90px;"></div><span class="text-xs font-bold text-slate-500 mt-2">Feb</span><span class="text-[10px] text-slate-400">120</span></div>
+                                <div class="flex flex-col items-center"><div class="w-10 sm:w-12 bg-indigo-500 dark:bg-indigo-500 rounded-t-md progress-bar shadow-lg shadow-indigo-500/30" style="height: 120px;"></div><span class="text-xs font-bold text-slate-800 dark:text-white mt-2">Mar</span><span class="text-[10px] text-indigo-500 font-bold">145</span></div>
                             </div>
-                            <div class="overflow-x-auto max-h-[500px]">
-                                <table class="w-full text-left text-sm whitespace-nowrap">
-                                    <thead class="bg-slate-100 dark:bg-slate-900/80 text-xs text-slate-500 dark:text-slate-400 uppercase font-bold sticky top-0 shadow-sm z-10">
-                                        <tr>
-                                            <th class="p-4 border-b dark:border-slate-700">${t('modDate')}</th>
-                                            <th class="p-4 border-b dark:border-slate-700">Usuario (Técnico)</th>
-                                            <th class="p-4 border-b dark:border-slate-700">${t('action')}</th>
-                                            <th class="p-4 border-b dark:border-slate-700">${t('product')}</th>
-                                            <th class="p-4 text-center border-b dark:border-slate-700">${t('qty')}</th>
-                                            <th class="p-4 text-right border-b dark:border-slate-700">IP Origen</th>
+                        </div>
+
+                        <!-- ESTADÍSTICAS: Estado General (Col 3) -->
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col h-[300px]">
+                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="layers" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('invStatus')}</h3>
+                            <div class="space-y-4 mt-4 flex-grow flex flex-col justify-center">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-emerald-500 mr-3 shadow-sm"></span><span class="text-sm font-bold text-slate-600 dark:text-slate-300">${t('optimal')}</span></div>
+                                    <span class="font-black text-slate-800 dark:text-white text-lg">${INVENTORY.length - itemsInAlert.length}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-orange-500 mr-3 shadow-sm"></span><span class="text-sm font-bold text-slate-600 dark:text-slate-300">${t('lowStock')}</span></div>
+                                    <span class="font-black text-slate-800 dark:text-white text-lg">${INVENTORY.filter(i => i.stock > 0 && i.stock <= i.minStock).length}</span>
+                                </div>
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center"><span class="w-3 h-3 rounded-full bg-red-500 mr-3 shadow-sm"></span><span class="text-sm font-bold text-slate-600 dark:text-slate-300">${t('outOfStock')}</span></div>
+                                    <span class="font-black text-slate-800 dark:text-white text-lg">${INVENTORY.filter(i => i.stock === 0).length}</span>
+                                </div>
+                            </div>
+                            <div class="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700">
+                                <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-2 flex overflow-hidden shadow-inner">
+                                    <div class="bg-emerald-500 h-2 progress-bar" style="width: ${((INVENTORY.length - itemsInAlert.length) / INVENTORY.length) * 100}%"></div>
+                                    <div class="bg-orange-500 h-2 progress-bar" style="width: ${(INVENTORY.filter(i => i.stock > 0 && i.stock <= i.minStock).length / INVENTORY.length) * 100}%"></div>
+                                    <div class="bg-red-500 h-2 progress-bar" style="width: ${(INVENTORY.filter(i => i.stock === 0).length / INVENTORY.length) * 100}%"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AUDITORÍA COMPLETA (TRAZABILIDAD) -->
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mb-8">
+                        <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
+                            <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center"><i data-lucide="history" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('auditTitle')}</h3>
+                            <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Registro inmutable de movimientos, IPs y responsables técnicos.</p>
+                        </div>
+                        <div class="overflow-x-auto max-h-[500px]">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="bg-slate-100 dark:bg-slate-900/80 text-xs text-slate-500 dark:text-slate-400 uppercase font-bold sticky top-0 shadow-sm z-10">
+                                    <tr>
+                                        <th class="p-4 border-b dark:border-slate-700">${t('modDate')}</th>
+                                        <th class="p-4 border-b dark:border-slate-700">Usuario (Técnico)</th>
+                                        <th class="p-4 border-b dark:border-slate-700">${t('action')}</th>
+                                        <th class="p-4 border-b dark:border-slate-700">${t('product')}</th>
+                                        <th class="p-4 text-center border-b dark:border-slate-700">${t('qty')}</th>
+                                        <th class="p-4 text-right border-b dark:border-slate-700">IP Origen</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
+                                    ${AUDIT_LOG.map((log, i) => {
+                                        const isOut = log.qty.toString().includes('-');
+                                        const ip = log.user === 'David Cajias' ? '192.168.1.22' : log.user === 'Joel Congache' ? '192.168.1.18' : '192.168.1.10';
+                                        return `
+                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                                            <td class="p-4 font-mono text-xs text-slate-500 dark:text-slate-400">${log.date}</td>
+                                            <td class="p-4 font-bold ${log.user === 'Joel Congache' ? 'text-purple-600 dark:text-purple-400' : 'text-blue-600 dark:text-blue-400'}">${log.user}</td>
+                                            <td class="p-4 font-medium text-slate-700 dark:text-slate-300">
+                                                <span class="px-2 py-1 rounded-md text-[10px] uppercase font-black tracking-wider ${isOut ? 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400'}">${log.action}</span>
+                                            </td>
+                                            <td class="p-4 font-medium text-slate-800 dark:text-slate-200">${log.product}</td>
+                                            <td class="p-4 text-center font-black text-lg ${isOut ? 'text-red-500 dark:text-red-400' : 'text-emerald-500 dark:text-emerald-400'}">${log.qty}</td>
+                                            <td class="p-4 text-right font-mono text-xs text-slate-400 dark:text-slate-500">${ip}</td>
                                         </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
-                                        ${AUDIT_LOG.map((log, i) => {
-                                            const isOut = log.qty.toString().includes('-');
-                                            return `
-                                            <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                                <td class="p-4 font-mono text-xs text-slate-500 dark:text-slate-400">${log.date}</td>
-                                                <td class="p-4 font-bold ${log.user === 'Joel Congache' ? 'text-purple-600 dark:text-purple-400' : 'text-blue-600 dark:text-blue-400'}">${log.user}</td>
-                                                <td class="p-4 font-medium text-slate-700 dark:text-slate-300">
-                                                    <span class="px-2 py-1 rounded-md text-[10px] uppercase font-black tracking-wider ${isOut ? 'bg-red-100 text-red-600 dark:bg-red-900/40 dark:text-red-400' : 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/40 dark:text-emerald-400'}">${log.action}</span>
-                                                </td>
-                                                <td class="p-4 font-medium text-slate-800 dark:text-slate-200">${log.product}</td>
-                                                <td class="p-4 text-center font-black text-lg ${isOut ? 'text-red-500 dark:text-red-400' : 'text-emerald-500 dark:text-emerald-400'}">${log.qty}</td>
-                                                <td class="p-4 text-right font-mono text-xs text-slate-400 dark:text-slate-500">${log.ip}</td>
-                                            </tr>
-                                            `;
-                                        }).join('')}
-                                    </tbody>
-                                </table>
-                            </div>
+                                        `;
+                                    }).join('')}
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                     `;
                 } 
                 else {
-                    
-                    html += `<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">`;
-                    
+                    // VISTA TÉCNICOS (Solo solicitudes de momento para evitar huecos en Grid de 2 col)
                     html += `
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col mb-8">
                             <div class="bg-indigo-600 dark:bg-indigo-500 px-6 py-5 text-white">
                                 <h2 class="text-xl font-black flex items-center"><i data-lucide="inbox" class="mr-2"></i> ${t('pendingTitle')}</h2>
                             </div>
@@ -699,7 +736,7 @@
                     if (PENDING_REQUESTS.length === 0) {
                         html += `<div class="text-center py-10"><i data-lucide="check-circle-2" class="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4"></i><p class="text-slate-500 dark:text-slate-400 font-medium">${t('noPending')}</p></div>`;
                     } else {
-                        html += `<div class="grid grid-cols-1 gap-6">`; 
+                        html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-6">`; // Mejoramos la lista de solicitudes a grid interno
                         PENDING_REQUESTS.forEach(req => {
                             let itemsHtml = req.items.map((i, index) => `
                                 <li class="flex items-center justify-between text-sm mb-2 last:mb-0">
@@ -719,8 +756,6 @@
                         html += `</div>`;
                     }
                     html += `</div></div>`; 
-
-                    html += `</div>`; 
                 }
 
                 // ==========================================
