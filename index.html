@@ -568,6 +568,83 @@
                 const totalInventory = INVENTORY.reduce((a, b) => a + b.stock, 0);
                 const totalAlerts = itemsInAlert.length;
 
+                // --- BLOQUE: TABLA DE INVENTARIO (Visible para Todos) ---
+                let inventoryRowsHtml = '';
+                INVENTORY.forEach(item => {
+                    const isZero = item.stock <= 0;
+                    const isLowStock = item.stock > 0 && item.stock <= item.minStock;
+                    
+                    // Cálculo del porcentaje para la barra visual (Asumiendo maxStock como 100%)
+                    const maxForBar = item.maxStock || (item.minStock * 3) || 50; 
+                    const percent = Math.min(100, Math.max(0, (item.stock / maxForBar) * 100));
+                    
+                    let colorClasses = '';
+                    let barColorClass = '';
+
+                    if (isZero) {
+                        colorClasses = 'border-red-300 dark:border-red-800 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/30';
+                        barColorClass = 'bg-red-500';
+                    } else if (isLowStock) {
+                        colorClasses = 'border-orange-300 dark:border-orange-800 text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30';
+                        barColorClass = 'bg-orange-500';
+                    } else {
+                        colorClasses = 'border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30';
+                        barColorClass = 'bg-emerald-500';
+                    }
+
+                    let readOnlyColorClasses = isZero 
+                        ? 'border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 bg-red-50/50 dark:bg-red-900/20'
+                        : isLowStock 
+                            ? 'border-orange-200 dark:border-orange-900/50 text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-900/20'
+                            : 'border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/20';
+
+                    const stockInputHtml = isTech 
+                        ? `<input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', this.value)" class="w-16 text-center text-sm font-bold border rounded px-1 py-1 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 outline-none transition-all shadow-sm ${colorClasses}">`
+                        : `<div class="w-16 mx-auto text-center text-sm font-bold border rounded px-1 py-1 shadow-sm ${readOnlyColorClasses}">${item.stock}</div>`;
+
+                    const auditHtml = item.lastModBy ? `<span class="block text-[10px] text-slate-400 dark:text-slate-500 font-normal mt-0.5">${t('lastMod')} ${item.lastModBy} (${item.lastModDate})</span>` : '';
+
+                    inventoryRowsHtml += `
+                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors border-b border-slate-50 dark:border-slate-700/50 last:border-0">
+                            <td class="py-4 pr-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0 ${item.bg}"><i data-lucide="${item.icon}" class="w-5 h-5 ${item.color}"></i></div>
+                                    <div class="flex-grow w-full">
+                                        <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">${ITEM_DICT[item.name]?.[currentLang] || item.name}</span>
+                                        ${auditHtml}
+                                        <div class="w-full max-w-[200px] bg-slate-100 dark:bg-slate-700/50 rounded-full h-1.5 mt-2.5 overflow-hidden flex shadow-inner">
+                                            <div class="${barColorClass} h-1.5 rounded-full progress-bar" style="width: ${percent}%"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-4 px-2 text-center align-middle font-mono text-xs text-slate-400 dark:text-slate-500">${item.minStock}</td>
+                            <td class="py-4 pl-2 text-center align-middle">${stockInputHtml}</td>
+                        </tr>`;
+                });
+
+                const inventoryTableBlock = `
+                    <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col mb-8">
+                        <div class="bg-slate-900 dark:bg-slate-950 px-6 py-5 text-white flex justify-between items-center">
+                            <div><h2 class="text-xl font-black flex items-center"><i data-lucide="package-search" class="mr-2 text-emerald-400"></i> ${t('stockTitle')}</h2></div>
+                        </div>
+                        <div class="p-6 overflow-x-auto">
+                            <table class="w-full text-left">
+                                <thead class="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 border-b-2 border-slate-100 dark:border-slate-700">
+                                    <tr>
+                                        <th class="pb-3 pr-4">${t('product')}</th>
+                                        <th class="pb-3 px-2 text-center">${t('minStock')}</th>
+                                        <th class="pb-3 pl-2 text-center">${t('units')}</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    ${inventoryRowsHtml}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+
                 html += `<div class="max-w-6xl mx-auto space-y-6 animate-fade-in-up pb-10">`;
 
                 html += `
@@ -619,10 +696,8 @@
                         </div>
                     </div>
                     
-                    <!-- AQUI CORREGIMOS EL ESPACIO VACÍO: 3 COLUMNAS -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
                         
-                        <!-- ESTADÍSTICAS: Top Periféricos (Col 1) -->
                         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
                             <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="trending-up" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('topConsumed')}</h3>
                             <div class="space-y-5 mt-6">
@@ -644,7 +719,6 @@
                             </div>
                         </div>
 
-                        <!-- ESTADÍSTICAS: Consumo Mensual (Col 2) -->
                         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col justify-end h-[300px]">
                             <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="bar-chart-3" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('monthlyConsumption')}</h3>
                             <div class="flex items-end justify-between px-2 flex-grow mt-4 border-b border-slate-200 dark:border-slate-600 pb-2">
@@ -655,7 +729,6 @@
                             </div>
                         </div>
 
-                        <!-- ESTADÍSTICAS: Estado General (Col 3) -->
                         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col h-[300px]">
                             <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="layers" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('invStatus')}</h3>
                             <div class="space-y-4 mt-4 flex-grow flex flex-col justify-center">
@@ -682,7 +755,6 @@
                         </div>
                     </div>
 
-                    <!-- AUDITORÍA COMPLETA (TRAZABILIDAD) -->
                     <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden mb-8">
                         <div class="p-6 border-b border-slate-100 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50">
                             <h3 class="text-lg font-bold text-slate-800 dark:text-white flex items-center"><i data-lucide="history" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('auditTitle')}</h3>
@@ -721,10 +793,12 @@
                             </table>
                         </div>
                     </div>
+                    
+                    ${inventoryTableBlock}
                     `;
                 } 
                 else {
-                    // VISTA TÉCNICOS (Solo solicitudes de momento para evitar huecos en Grid de 2 col)
+                    
                     html += `
                         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col mb-8">
                             <div class="bg-indigo-600 dark:bg-indigo-500 px-6 py-5 text-white">
@@ -736,7 +810,7 @@
                     if (PENDING_REQUESTS.length === 0) {
                         html += `<div class="text-center py-10"><i data-lucide="check-circle-2" class="w-16 h-16 text-slate-300 dark:text-slate-600 mx-auto mb-4"></i><p class="text-slate-500 dark:text-slate-400 font-medium">${t('noPending')}</p></div>`;
                     } else {
-                        html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-6">`; // Mejoramos la lista de solicitudes a grid interno
+                        html += `<div class="grid grid-cols-1 md:grid-cols-2 gap-6">`; 
                         PENDING_REQUESTS.forEach(req => {
                             let itemsHtml = req.items.map((i, index) => `
                                 <li class="flex items-center justify-between text-sm mb-2 last:mb-0">
@@ -756,65 +830,11 @@
                         html += `</div>`;
                     }
                     html += `</div></div>`; 
+
+                    html += inventoryTableBlock;
                 }
 
-                // ==========================================
-                // 📦 TABLA DE INVENTARIO (Visible para Todos)
-                // ==========================================
-                html += `
-                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
-                            <div class="bg-slate-900 dark:bg-slate-950 px-6 py-5 text-white flex justify-between items-center">
-                                <div><h2 class="text-xl font-black flex items-center"><i data-lucide="package-search" class="mr-2 text-emerald-400"></i> ${t('stockTitle')}</h2></div>
-                            </div>
-                            <div class="p-6 overflow-x-auto">
-                                <table class="w-full text-left">
-                                    <thead class="text-[10px] font-black uppercase text-slate-400 dark:text-slate-500 border-b-2 border-slate-100 dark:border-slate-700">
-                                        <tr>
-                                            <th class="pb-2">${t('product')}</th>
-                                            <th class="pb-2 text-center">${t('minStock')}</th>
-                                            <th class="pb-2 text-center">${t('units')}</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-slate-100 dark:divide-slate-700">
-                `;
-
-                INVENTORY.forEach(item => {
-                    const isZero = item.stock <= 0;
-                    const isLowStock = item.stock > 0 && item.stock <= item.minStock;
-                    
-                    let colorClasses = '';
-                    if (isZero) colorClasses = 'border-red-300 dark:border-red-800 text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30';
-                    else if (isLowStock) colorClasses = 'border-orange-300 dark:border-orange-800 text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30';
-                    else colorClasses = 'border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 bg-white dark:bg-slate-800';
-
-                    let readOnlyColorClasses = '';
-                    if (isZero) readOnlyColorClasses = 'border-red-200 dark:border-red-900/50 text-red-500 dark:text-red-400 bg-red-50/50 dark:bg-red-900/20';
-                    else if (isLowStock) readOnlyColorClasses = 'border-orange-200 dark:border-orange-900/50 text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-900/20';
-                    else readOnlyColorClasses = 'border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-900/50 text-slate-500 dark:text-slate-400';
-
-                    const stockInputHtml = isTech 
-                        ? `<input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', this.value)" class="w-16 text-center text-sm font-bold border rounded px-1 py-1 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 outline-none transition-all ${colorClasses}">`
-                        : `<div class="w-16 mx-auto text-center text-sm font-bold border rounded px-1 py-1 ${readOnlyColorClasses}">${item.stock}</div>`;
-
-                    const auditHtml = item.lastModBy ? `<span class="block text-[10px] text-slate-400 dark:text-slate-500 font-normal mt-0.5">${t('lastMod')} ${item.lastModBy} (${item.lastModDate})</span>` : '';
-
-                    html += `
-                                        <tr class="hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                                            <td class="py-3 flex items-center gap-3">
-                                                <div class="w-8 h-8 rounded flex items-center justify-center ${item.bg}"><i data-lucide="${item.icon}" class="w-4 h-4 ${item.color}"></i></div>
-                                                <div><span class="font-semibold text-slate-700 dark:text-slate-200 text-sm">${ITEM_DICT[item.name]?.[currentLang] || item.name}</span>${auditHtml}</div>
-                                            </td>
-                                            <td class="py-3 text-center align-middle font-mono text-xs text-slate-400 dark:text-slate-500">${item.minStock}</td>
-                                            <td class="py-3 text-center align-middle">${stockInputHtml}</td>
-                                        </tr>`;
-                });
-
-                html += `
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-                </div>`;
+                html += `</div>`;
             }
             else if (currentView === 'checkout') {
                 floatingCart.style.display = 'none';
