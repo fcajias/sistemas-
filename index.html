@@ -206,7 +206,7 @@
             currentLang = lang; localStorage.setItem('sicp_lang', lang); render();
         }
 
-        const EXCEL_API_URL = "https://script.google.com/macros/s/AKfycbyufsogzX2J-Pz43hTm8OX2udruHvWJcf-jm3BiQhPNddAG9ucpl_PammVnVKpWvrkJTg/exec"; 
+        const EXCEL_API_URL = "https://script.google.com/macros/s/AKfycbyT0uQHdtIyOGPlGf4kTFHQUwyZcYH9JRJoMzKxlgVnDL4ndDnre1fv7Yba21OZvY494A/exec"; 
         
         const GOOGLE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfFxX65M8NgVPHB09LqC-mIRFi5_owL5G73EszBKKQNZlVVrQ/formResponse";
         const ENTRY_NAME = "entry.519287369"; 
@@ -268,22 +268,37 @@
         }
 
         function logAuditAction(action, product, qty) {
+            const dateStr = new Date().toLocaleString('es-EC', { hour12: false });
+            const ip = currentAdminSession === 'David Cajias' ? '192.168.1.22' : currentAdminSession === 'Joel Congache' ? '192.168.1.18' : '192.168.1.10';
+            
             const log = {
-                date: new Date().toLocaleString('es-EC', { hour12: false }),
+                date: dateStr,
                 user: currentAdminSession,
                 action: action,
                 product: product,
-                qty: qty > 0 ? `+${qty}` : qty
+                qty: qty > 0 ? `+${qty}` : qty,
+                ip: ip
             };
+            
             AUDIT_LOG.unshift(log);
             if(AUDIT_LOG.length > 200) AUDIT_LOG.pop(); 
             localStorage.setItem('sicp_audit_log', JSON.stringify(AUDIT_LOG));
+
+            // ENVÍO EN SEGUNDO PLANO A EXCEL
+            if (EXCEL_API_URL) {
+                fetch(`${EXCEL_API_URL}?action=log_audit&date=${encodeURIComponent(dateStr)}&user=${encodeURIComponent(currentAdminSession)}&actionName=${encodeURIComponent(action)}&product=${encodeURIComponent(product)}&qty=${encodeURIComponent(log.qty)}&ip=${encodeURIComponent(ip)}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
+            }
         }
 
         function logConsumption(product, qty) {
             if (!CONSUMPTION[product]) CONSUMPTION[product] = 0;
             CONSUMPTION[product] += qty;
             localStorage.setItem('sicp_consumption', JSON.stringify(CONSUMPTION));
+
+            // ENVÍO EN SEGUNDO PLANO A EXCEL
+            if (EXCEL_API_URL) {
+                fetch(`${EXCEL_API_URL}?action=log_consumption&product=${encodeURIComponent(product)}&qty=${qty}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
+            }
         }
 
         const container = document.getElementById('app-container');
@@ -317,6 +332,14 @@
                     });
                 }
                 if (data.pending) PENDING_REQUESTS = data.pending;
+                if (data.audit && data.audit.length > 0) {
+                    AUDIT_LOG = data.audit;
+                    localStorage.setItem('sicp_audit_log', JSON.stringify(AUDIT_LOG));
+                }
+                if (data.consumption && Object.keys(data.consumption).length > 0) {
+                    Object.assign(CONSUMPTION, data.consumption);
+                    localStorage.setItem('sicp_consumption', JSON.stringify(CONSUMPTION));
+                }
             } catch(e) {} finally {
                 isSyncing = false;
                 render();
@@ -345,6 +368,9 @@
                                 }
                             }
                         });
+                    }
+                    if (data.audit && JSON.stringify(AUDIT_LOG) !== JSON.stringify(data.audit)) {
+                        AUDIT_LOG = data.audit; hasChanges = true;
                     }
                     if (hasChanges && document.activeElement.tagName !== 'INPUT') render();
                 } catch(e) {}
