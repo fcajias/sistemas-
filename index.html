@@ -99,7 +99,7 @@
                 criticalTableTitle: "Alerta de Reabastecimiento Crítico", modBy: "Audit. Técnico", modDate: "Fecha",
                 analyticsTitle: "Estado de Abastecimiento", auditTitle: "Auditoría Histórica (Trazabilidad)",
                 minStock: "Stock Mínimo", action: "Acción", qty: "Cant.", autoAlerts: "Alertas Automáticas",
-                topConsumed: "Periféricos más utilizados (Top 4)", monthlyConsumption: "Consumo Mensual (Estimado)",
+                topConsumed: "Periféricos más utilizados (Top 4)", monthlyConsumption: "Consumo Mensual (Real)",
                 restockNeeded: "Reposición necesaria urgente", invStatus: "Estado de Inventario", optimal: "Óptimo",
                 // Módulo Dotación Nuevo Ingreso
                 newHireBtn: "Dotación Nuevo Ingreso", newHireTitle: "Entregar Kit a Nuevo Operador",
@@ -131,7 +131,7 @@
                 criticalTableTitle: "Critical Restock Alert", modBy: "Tech Audit", modDate: "Date",
                 analyticsTitle: "Supply Status", auditTitle: "Historical Audit (Traceability)",
                 minStock: "Min Stock", action: "Action", qty: "Qty", autoAlerts: "Auto Alerts",
-                topConsumed: "Most Used Peripherals (Top 4)", monthlyConsumption: "Monthly Consumption (Est)",
+                topConsumed: "Most Used Peripherals (Top 4)", monthlyConsumption: "Monthly Consumption (Real)",
                 restockNeeded: "Urgent restocking needed", invStatus: "Inventory Status", optimal: "Optimal",
                 newHireBtn: "New Hire Kit", newHireTitle: "Deliver Kit to New Operator",
                 newHireNameLabel: "New Operator's Name", newHireStandard: "Standard Kit (Default)",
@@ -162,7 +162,7 @@
                 criticalTableTitle: "严重补货警报", modBy: "技术审计", modDate: "日期",
                 analyticsTitle: "供应状态", auditTitle: "历史审计（可追溯性）",
                 minStock: "最低库存", action: "行动", qty: "数量", autoAlerts: "自动警报",
-                topConsumed: "最常用的外设（前4名）", monthlyConsumption: "月度消耗（估计）",
+                topConsumed: "最常用的外设（前4名）", monthlyConsumption: "月度消耗（实际）",
                 restockNeeded: "急需补货", invStatus: "库存状态", optimal: "最佳",
                 newHireBtn: "新员工套件", newHireTitle: "向新操作员交付套件",
                 newHireNameLabel: "新操作员姓名", newHireStandard: "标准套件（默认）",
@@ -250,21 +250,24 @@
         let backgroundSyncTimer = null;
         let isKitModalOpen = false;
 
-        // --- MOTORES DE AUDITORÍA Y ESTADÍSTICA LOCAL ---
+        // --- MOTORES DE AUDITORÍA (SOLO DATOS REALES) ---
         let AUDIT_LOG = JSON.parse(localStorage.getItem('sicp_audit_log')) || [];
-        let CONSUMPTION = JSON.parse(localStorage.getItem('sicp_consumption')) || {};
-
-        if (Object.keys(CONSUMPTION).length === 0) {
-            CONSUMPTION = { 'Mouse': 120, 'Audífonos simples': 95, 'Teclado': 80, 'Cargador de laptop': 50 };
-            localStorage.setItem('sicp_consumption', JSON.stringify(CONSUMPTION));
-        }
+        
         if (AUDIT_LOG.length === 0) {
-            AUDIT_LOG = [
-                { date: "04/03/2026 14:30:00", user: "David Cajias", action: "Despacho", product: "Mouse", qty: "-5" },
-                { date: "04/03/2026 11:15:00", user: "Joel Congache", action: "Ajuste Manual", product: "Cámara", qty: "+3" },
-                { date: "04/03/2026 09:10:00", user: "David Cajias", action: "Despacho", product: "Cable VGA", qty: "-2" }
-            ];
+            AUDIT_LOG = []; // Cero datos falsos
             localStorage.setItem('sicp_audit_log', JSON.stringify(AUDIT_LOG));
+        }
+
+        const container = document.getElementById('app-container');
+        const floatingCart = document.getElementById('floating-cart');
+        const cartCountEl = document.getElementById('cart-count');
+
+        function showToast(msg, type = 'info') {
+            const toast = document.getElementById('toast');
+            document.getElementById('toast-msg').innerHTML = msg;
+            toast.className = `fixed top-20 right-4 sm:right-8 text-white px-5 py-3 rounded-2xl shadow-2xl transform transition-all duration-300 translate-x-[150%] z-50 flex items-center gap-3 font-medium border ${type === 'error' ? 'bg-red-600 border-red-500' : type==='success' ? 'bg-emerald-600 border-emerald-500' : 'bg-slate-900 dark:bg-slate-800 border-slate-700 dark:border-slate-600'} no-print`;
+            toast.classList.remove('translate-x-[150%]');
+            setTimeout(() => toast.classList.add('translate-x-[150%]'), 4000);
         }
 
         function logAuditAction(action, product, qty) {
@@ -284,33 +287,9 @@
             if(AUDIT_LOG.length > 200) AUDIT_LOG.pop(); 
             localStorage.setItem('sicp_audit_log', JSON.stringify(AUDIT_LOG));
 
-            // ENVÍO EN SEGUNDO PLANO A EXCEL
             if (EXCEL_API_URL) {
                 fetch(`${EXCEL_API_URL}?action=log_audit&date=${encodeURIComponent(dateStr)}&user=${encodeURIComponent(currentAdminSession)}&actionName=${encodeURIComponent(action)}&product=${encodeURIComponent(product)}&qty=${encodeURIComponent(log.qty)}&ip=${encodeURIComponent(ip)}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
             }
-        }
-
-        function logConsumption(product, qty) {
-            if (!CONSUMPTION[product]) CONSUMPTION[product] = 0;
-            CONSUMPTION[product] += qty;
-            localStorage.setItem('sicp_consumption', JSON.stringify(CONSUMPTION));
-
-            // ENVÍO EN SEGUNDO PLANO A EXCEL
-            if (EXCEL_API_URL) {
-                fetch(`${EXCEL_API_URL}?action=log_consumption&product=${encodeURIComponent(product)}&qty=${qty}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
-            }
-        }
-
-        const container = document.getElementById('app-container');
-        const floatingCart = document.getElementById('floating-cart');
-        const cartCountEl = document.getElementById('cart-count');
-
-        function showToast(msg, type = 'info') {
-            const toast = document.getElementById('toast');
-            document.getElementById('toast-msg').innerHTML = msg;
-            toast.className = `fixed top-20 right-4 sm:right-8 text-white px-5 py-3 rounded-2xl shadow-2xl transform transition-all duration-300 translate-x-[150%] z-50 flex items-center gap-3 font-medium border ${type === 'error' ? 'bg-red-600 border-red-500' : type==='success' ? 'bg-emerald-600 border-emerald-500' : 'bg-slate-900 dark:bg-slate-800 border-slate-700 dark:border-slate-600'} no-print`;
-            toast.classList.remove('translate-x-[150%]');
-            setTimeout(() => toast.classList.add('translate-x-[150%]'), 4000);
         }
 
         async function loadData() {
@@ -335,10 +314,6 @@
                 if (data.audit && data.audit.length > 0) {
                     AUDIT_LOG = data.audit;
                     localStorage.setItem('sicp_audit_log', JSON.stringify(AUDIT_LOG));
-                }
-                if (data.consumption && Object.keys(data.consumption).length > 0) {
-                    Object.assign(CONSUMPTION, data.consumption);
-                    localStorage.setItem('sicp_consumption', JSON.stringify(CONSUMPTION));
                 }
             } catch(e) {} finally {
                 isSyncing = false;
@@ -378,7 +353,7 @@
         }
         function stopBackgroundSync() { if (backgroundSyncTimer) { clearInterval(backgroundSyncTimer); backgroundSyncTimer = null; } }
 
-        async function adminUpdateStock(id, newStock) {
+        function adminUpdateStock(id, newStock) {
             const item = INVENTORY.find(i => i.id === id);
             const oldStock = item.stock;
             item.stock = parseInt(newStock) || 0;
@@ -386,19 +361,20 @@
             item.lastModDate = new Date().toLocaleTimeString();
             
             const diff = item.stock - oldStock;
-            if(diff !== 0) {
+            
+            render(); 
+
+            if (diff !== 0) {
                 logAuditAction('Ajuste Manual', item.name, diff);
             }
 
-            render(); 
-
             if (!EXCEL_API_URL) return;
             try {
-                await fetch(`${EXCEL_API_URL}?action=update&id=${id}&stock=${item.stock}&user=${encodeURIComponent(currentAdminSession)}&date=${encodeURIComponent(item.lastModDate)}&t=${new Date().getTime()}`, { redirect: 'follow' });
+                fetch(`${EXCEL_API_URL}?action=update&id=${id}&stock=${item.stock}&user=${encodeURIComponent(currentAdminSession)}&date=${encodeURIComponent(item.lastModDate)}&t=${new Date().getTime()}`, { redirect: 'follow' });
             } catch(e) { showToast(`Error API`, 'error'); }
         }
 
-        async function processRequest(reqId) {
+        function processRequest(reqId) {
             if (!currentAdminSession) { goToAdmin(); return; }
             const request = PENDING_REQUESTS.find(r => r.id === reqId);
             if (!request) return;
@@ -415,14 +391,13 @@
                  if (approvedQty > 0) {
                      const invItem = INVENTORY.find(i => i.id === itemReq.id);
                      if (invItem) {
-                         if (approvedQty > invItem.stock) { alert(`Stock insuficiente`); return; }
+                         if (approvedQty > invItem.stock) { alert(`Stock insuficiente de ${itemReq.name}`); return; }
                          invItem.stock = Math.max(0, invItem.stock - approvedQty);
                          invItem.lastModBy = currentAdminSession;
                          invItem.lastModDate = nowStr;
                          updates.push({id: invItem.id, stock: invItem.stock, user: currentAdminSession, date: nowStr});
                          
                          logAuditAction('Despacho', itemReq.name, -approvedQty);
-                         logConsumption(itemReq.name, approvedQty);
 
                          finalItemsText += approvedQty !== itemReq.qty ? `${approvedQty}x ${itemReq.name} (Pidió ${itemReq.qty}), ` : `${approvedQty}x ${itemReq.name}, `;
                      }
@@ -435,8 +410,8 @@
             
             if (EXCEL_API_URL) {
                 try {
-                    await Promise.all(updates.map(u => fetch(`${EXCEL_API_URL}?action=update&id=${u.id}&stock=${u.stock}&user=${encodeURIComponent(u.user)}&date=${encodeURIComponent(u.date)}&t=${new Date().getTime()}`, { redirect: 'follow' })));
-                    await fetch(`${EXCEL_API_URL}?action=remove_pending&reqId=${reqId}&t=${new Date().getTime()}`, { redirect: 'follow' });
+                    Promise.all(updates.map(u => fetch(`${EXCEL_API_URL}?action=update&id=${u.id}&stock=${u.stock}&user=${encodeURIComponent(u.user)}&date=${encodeURIComponent(u.date)}&t=${new Date().getTime()}`, { redirect: 'follow' })));
+                    fetch(`${EXCEL_API_URL}?action=remove_pending&reqId=${reqId}&t=${new Date().getTime()}`, { redirect: 'follow' });
                 } catch(e) {}
             }
         }
@@ -454,8 +429,7 @@
                 if (EXCEL_API_URL) fetch(`${EXCEL_API_URL}?action=remove_pending&reqId=${reqId}&t=${new Date().getTime()}`, { redirect: 'follow' }).catch(e=>e);
             }
         }
-        
-        // --- LÓGICA PARA MODAL DE DOTACIÓN RÁPIDA ---
+
         function openKitModal() { isKitModalOpen = true; render(); }
         function closeKitModal() { isKitModalOpen = false; render(); }
 
@@ -504,7 +478,6 @@
                 updates.push({id: invItem.id, stock: invItem.stock, user: currentAdminSession, date: nowStr});
 
                 logAuditAction(`Dotación a: ${empName}`, itemReq.name, -1);
-                logConsumption(itemReq.name, 1);
             });
 
             isKitModalOpen = false;
@@ -665,33 +638,134 @@
                 const isTech = !isBoss; 
 
                 const itemsInAlert = INVENTORY.filter(i => i.stock <= i.minStock);
-                const sortedConsumption = Object.entries(CONSUMPTION).sort((a, b) => b[1] - a[1]).slice(0, 4);
-                
                 const totalInventory = INVENTORY.reduce((a, b) => a + b.stock, 0);
                 const totalAlerts = itemsInAlert.length;
 
-                // --- TABLA DE INVENTARIO CENTRALIZADA ---
+                // --- MOTOR ESTADÍSTICO 100% REAL ---
+                const realConsumption = {};
+                const monthlyData = {};
+                const monthNames = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+                
+                // Función robusta para extraer el mes de cualquier formato de fecha que dé Excel/JS
+                const getMonthFromDate = (dStr) => {
+                    if(!dStr) return -1;
+                    const s = dStr.toString();
+                    
+                    // Intento 1: Parseo de fecha estándar ("Sat Mar 07 2026...") o ISO
+                    const d = new Date(s);
+                    if(!isNaN(d.getTime()) && !s.match(/^\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}/)) {
+                        return d.getMonth();
+                    }
+                    
+                    // Intento 2: Parseo estricto local "DD/MM/YYYY" o "D/M/YYYY"
+                    const m = s.match(/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})/);
+                    if(m) {
+                        return parseInt(m[2], 10) - 1; // [2] es el mes
+                    }
+                    
+                    return -1;
+                };
+
+                // 1. Inicializar gráfico de Marzo a Diciembre en 0
+                for (let i = 2; i <= 11; i++) {
+                    monthlyData[monthNames[i]] = 0;
+                }
+
+                // 2. Extraer datos reales del AUDIT_LOG
+                AUDIT_LOG.forEach(log => {
+                    if (log.qty && log.qty.toString().includes('-')) {
+                        const amount = Math.abs(parseInt(log.qty));
+                        if (!isNaN(amount)) {
+                            // Sumar a Top 4
+                            realConsumption[log.product] = (realConsumption[log.product] || 0) + amount;
+                            
+                            // Sumar al Gráfico Mensual
+                            const mIdx = getMonthFromDate(log.date);
+                            if (mIdx >= 2 && mIdx <= 11) {
+                                monthlyData[monthNames[mIdx]] += amount;
+                            }
+                        }
+                    }
+                });
+
+                // 3. Dibujar Top 4
+                const sortedConsumption = Object.entries(realConsumption).sort((a, b) => b[1] - a[1]).slice(0, 4);
+                let top4Html = '';
+                if (sortedConsumption.length === 0) {
+                    top4Html = `<div class="text-center text-slate-400 text-sm py-6 font-medium">Aún no hay datos reales registrados.</div>`;
+                } else {
+                    top4Html = sortedConsumption.map(([prod, qty], index) => {
+                        const maxVal = sortedConsumption[0][1] || 1;
+                        const percent = (qty / maxVal) * 100;
+                        const colors = ['bg-indigo-500', 'bg-blue-500', 'bg-emerald-500', 'bg-purple-500'];
+                        return `
+                        <div>
+                            <div class="flex justify-between text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
+                                <span>${prod}</span>
+                                <span>${qty} uds</span>
+                            </div>
+                            <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
+                                <div class="${colors[index % colors.length]} h-3 rounded-full progress-bar" style="width: ${percent}%"></div>
+                            </div>
+                        </div>`;
+                    }).join('');
+                }
+
+                // 4. Dibujar Barras Mensuales Dinámicas
+                let dynamicBarsHtml = '';
+                const displayMonths = ["Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"];
+                let maxMonthlyConsumption = Math.max(...displayMonths.map(m => monthlyData[m]), 1);
+
+                displayMonths.forEach((m) => {
+                    const val = monthlyData[m];
+                    const heightPx = val === 0 ? 4 : Math.max(15, (val / maxMonthlyConsumption) * 120); 
+                    const isActive = val > 0;
+                    
+                    const barClass = isActive ? 'bg-indigo-500 dark:bg-indigo-500 shadow-lg shadow-indigo-500/30' : 'bg-slate-200 dark:bg-slate-700/50'; 
+                    const textClass = isActive ? 'text-slate-800 dark:text-white font-bold' : 'text-slate-400 dark:text-slate-500 font-normal';
+                    const numClass = isActive ? 'text-indigo-600 dark:text-indigo-400 font-bold' : 'text-slate-400 dark:text-slate-600'; 
+
+                    dynamicBarsHtml += `
+                        <div class="flex flex-col items-center justify-end h-full flex-1 min-w-0">
+                            <span class="text-[9px] sm:text-[10px] ${numClass} mb-1">${val}</span>
+                            <div class="w-5 sm:w-8 ${barClass} rounded-t-md transition-all duration-1000 ease-out" style="height: ${heightPx}px;"></div>
+                            <span class="text-[9px] sm:text-xs ${textClass} mt-2 w-full text-center truncate">${m}</span>
+                        </div>`;
+                });
+                // --- FIN MOTOR ESTADÍSTICO ---
+
+                // ==========================================
+                // 📦 TABLA DE INVENTARIO COMPARTIDA (HTML REUTILIZABLE)
+                // ==========================================
                 let inventoryRowsHtml = '';
                 INVENTORY.forEach(item => {
                     const isZero = item.stock <= 0;
                     const isLowStock = item.stock > 0 && item.stock <= item.minStock;
-                    const pct = Math.min(100, Math.max(0, (item.stock / item.maxStock) * 100)); 
+                    const pct = Math.min(100, Math.max(0, (item.stock / item.maxStock) * 100)); // Porcentaje para la barra horizontal
                     
                     let colorClasses = '';
-                    if (isZero) colorClasses = 'border-red-300 dark:border-red-800 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/30';
-                    else if (isLowStock) colorClasses = 'border-orange-300 dark:border-orange-800 text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30';
-                    else colorClasses = 'border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30'; 
+                    let barColorClass = '';
 
-                    let readOnlyColorClasses = '';
-                    if (isZero) readOnlyColorClasses = 'border-red-300 dark:border-red-800 text-red-700 dark:text-red-400 bg-red-100 dark:bg-red-900/40 shadow-sm';
-                    else if (isLowStock) readOnlyColorClasses = 'border-orange-300 dark:border-orange-800 text-orange-700 dark:text-orange-400 bg-orange-100 dark:bg-orange-900/40 shadow-sm';
-                    else readOnlyColorClasses = 'border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 bg-emerald-100 dark:bg-emerald-900/40 shadow-sm';
+                    if (isZero) {
+                        colorClasses = 'border-red-300 dark:border-red-800 text-red-700 dark:text-red-400 bg-red-50 dark:bg-red-900/30';
+                        barColorClass = 'bg-red-500';
+                    } else if (isLowStock) {
+                        colorClasses = 'border-orange-300 dark:border-orange-800 text-orange-700 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/30';
+                        barColorClass = 'bg-orange-500';
+                    } else {
+                        colorClasses = 'border-emerald-300 dark:border-emerald-800 text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-900/30';
+                        barColorClass = 'bg-emerald-500';
+                    }
 
-                    let barColor = isZero ? 'bg-red-500' : isLowStock ? 'bg-orange-500' : 'bg-emerald-500';
+                    let readOnlyColorClasses = isZero 
+                        ? 'border-red-200 dark:border-red-900/50 text-red-600 dark:text-red-400 bg-red-50/50 dark:bg-red-900/20'
+                        : isLowStock 
+                            ? 'border-orange-200 dark:border-orange-900/50 text-orange-600 dark:text-orange-400 bg-orange-50/50 dark:bg-orange-900/20'
+                            : 'border-emerald-200 dark:border-emerald-900/50 text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-900/20';
 
                     const stockInputHtml = isTech 
-                        ? `<input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', this.value)" class="w-16 text-center text-sm font-bold border rounded px-1 py-1 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 outline-none transition-all ${colorClasses}">`
-                        : `<div class="w-16 mx-auto text-center text-sm font-bold border rounded px-1 py-1 ${readOnlyColorClasses}">${item.stock}</div>`;
+                        ? `<input type="number" value="${item.stock}" onchange="adminUpdateStock('${item.id}', this.value)" class="w-16 text-center text-sm font-bold border rounded px-1 py-1 focus:ring-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 outline-none transition-all shadow-sm ${colorClasses}">`
+                        : `<div class="w-16 mx-auto text-center text-sm font-bold border rounded px-1 py-1 shadow-sm ${readOnlyColorClasses}">${item.stock}</div>`;
 
                     const auditHtml = item.lastModBy ? `<span class="block text-[10px] text-slate-400 dark:text-slate-500 font-normal mt-0.5">${t('lastMod')} ${item.lastModBy} (${item.lastModDate})</span>` : '';
 
@@ -704,7 +778,7 @@
                                         <span class="font-bold text-slate-800 dark:text-slate-200 text-sm">${ITEM_DICT[item.name]?.[currentLang] || item.name}</span>
                                         ${auditHtml}
                                         <div class="w-full max-w-[200px] bg-slate-100 dark:bg-slate-700/50 rounded-full h-1.5 mt-2.5 overflow-hidden flex shadow-inner">
-                                            <div class="${barColor} h-1.5 rounded-full progress-bar" style="width: ${pct}%"></div>
+                                            <div class="${barColorClass} h-1.5 rounded-full progress-bar" style="width: ${pct}%"></div>
                                         </div>
                                     </div>
                                 </div>
@@ -792,31 +866,14 @@
                         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
                             <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="trending-up" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('topConsumed')}</h3>
                             <div class="space-y-5 mt-6">
-                                ${sortedConsumption.map(([prod, qty], index) => {
-                                    const maxVal = sortedConsumption[0][1] || 1;
-                                    const percent = (qty / maxVal) * 100;
-                                    const colors = ['bg-indigo-500', 'bg-blue-500', 'bg-emerald-500', 'bg-purple-500'];
-                                    return `
-                                    <div>
-                                        <div class="flex justify-between text-sm font-bold text-slate-700 dark:text-slate-300 mb-1">
-                                            <span>${prod}</span>
-                                            <span>${qty} uds</span>
-                                        </div>
-                                        <div class="w-full bg-slate-100 dark:bg-slate-700 rounded-full h-3 overflow-hidden">
-                                            <div class="${colors[index % colors.length]} h-3 rounded-full progress-bar" style="width: ${percent}%"></div>
-                                        </div>
-                                    </div>`;
-                                }).join('')}
+                                ${top4Html}
                             </div>
                         </div>
 
                         <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col justify-end h-[300px]">
-                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="bar-chart-3" class="w-5 h-5 mr-2 text-indigo-500"></i> ${t('monthlyConsumption')}</h3>
-                            <div class="flex items-end justify-between px-2 flex-grow mt-4 border-b border-slate-200 dark:border-slate-600 pb-2">
-                                <div class="flex flex-col items-center"><div class="w-10 sm:w-12 bg-slate-300 dark:bg-slate-600 rounded-t-md progress-bar" style="height: 40px;"></div><span class="text-xs font-bold text-slate-500 mt-2">Dic</span><span class="text-[10px] text-slate-400">65</span></div>
-                                <div class="flex flex-col items-center"><div class="w-10 sm:w-12 bg-slate-300 dark:bg-slate-600 rounded-t-md progress-bar" style="height: 60px;"></div><span class="text-xs font-bold text-slate-500 mt-2">Ene</span><span class="text-[10px] text-slate-400">80</span></div>
-                                <div class="flex flex-col items-center"><div class="w-10 sm:w-12 bg-indigo-300 dark:bg-indigo-800 rounded-t-md progress-bar" style="height: 90px;"></div><span class="text-xs font-bold text-slate-500 mt-2">Feb</span><span class="text-[10px] text-slate-400">120</span></div>
-                                <div class="flex flex-col items-center"><div class="w-10 sm:w-12 bg-indigo-500 dark:bg-indigo-500 rounded-t-md progress-bar shadow-lg shadow-indigo-500/30" style="height: 120px;"></div><span class="text-xs font-bold text-slate-800 dark:text-white mt-2">Mar</span><span class="text-[10px] text-indigo-500 font-bold">145</span></div>
+                            <h3 class="text-lg font-bold text-slate-800 dark:text-white mb-4 flex items-center"><i data-lucide="bar-chart-3" class="w-5 h-5 mr-2 text-indigo-500"></i> Consumo Mensual (Real)</h3>
+                            <div class="flex items-end justify-between px-1 sm:px-2 flex-grow mt-4 border-b border-slate-200 dark:border-slate-600 pb-2 h-full">
+                                ${dynamicBarsHtml}
                             </div>
                         </div>
 
@@ -884,7 +941,7 @@
                             </table>
                         </div>
                     </div>
-
+                    
                     ${inventoryTableBlock}
                     `;
                 } 
@@ -932,7 +989,11 @@
                     }
                     html += `</div></div>`; 
 
-                    html += inventoryTableBlock;
+                    html += `
+                        <div class="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 overflow-hidden flex flex-col">
+                            ${inventoryTableBlock}
+                        </div>
+                    `; 
                 }
 
                 html += `</div>`;
